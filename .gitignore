@@ -1,0 +1,69 @@
+# Environment Configuration
+.env
+.env.local
+.env.*.local
+
+# Storage & Logs
+storage/logs/*.log
+storage/backups/*
+storage/cache/*
+!storage/logs/.gitkeep
+!storage/backups/.gitkeep
+!storage/cache/.gitkeep
+
+# Composer
+vendor/
+composer.lock
+
+# IDE & Editors
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+.DS_Store
+Thumbs.db
+
+# OS Files
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Temporary Files
+*.tmp
+*.temp
+*.cache
+
+# Node modules (if used)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Build artifacts
+/public/build/
+/public/hot
+/public/storage
+
+# PHP
+*.php~
+.phpunit.result.cache
+
+# Database dumps
+*.sql.gz
+*.sql
+!database/migrations/*.sql
+!database/seeds/*.sql
+
+# Sensitive files
+*.key
+*.pem
+*.crt
+*.csr
+
+# Testing
+.phpunit.cache
+coverage/
+
+# Backup files
+*.bak
+*.backup

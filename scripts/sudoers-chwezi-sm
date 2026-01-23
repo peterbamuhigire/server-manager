@@ -1,0 +1,33 @@
+# Sudoers configuration for Chwezi Server Manager
+# Place this file in /etc/sudoers.d/chwezi-sm
+# chmod 0440 /etc/sudoers.d/chwezi-sm
+
+# Apache user (www-data) can run specific commands without password
+# These commands are required for server management operations
+
+# Apache configuration
+www-data ALL=(root) NOPASSWD: /usr/sbin/a2ensite
+www-data ALL=(root) NOPASSWD: /usr/sbin/a2dissite
+www-data ALL=(root) NOPASSWD: /usr/sbin/a2enmod
+www-data ALL=(root) NOPASSWD: /usr/sbin/a2dismod
+www-data ALL=(root) NOPASSWD: /bin/systemctl reload apache2
+www-data ALL=(root) NOPASSWD: /bin/systemctl restart apache2
+
+# Git operations
+www-data ALL=(root) NOPASSWD: /usr/bin/git
+
+# Certbot (SSL certificates)
+www-data ALL=(root) NOPASSWD: /usr/bin/certbot
+
+# MySQL operations
+www-data ALL=(root) NOPASSWD: /usr/bin/mysql
+www-data ALL=(root) NOPASSWD: /usr/bin/mysqldump
+
+# File operations in web root
+www-data ALL=(root) NOPASSWD: /bin/chown -R www-data\:www-data /var/www/*
+www-data ALL=(root) NOPASSWD: /bin/chmod -R 755 /var/www/*
+
+# Composer (for PHP dependencies)
+www-data ALL=(root) NOPASSWD: /usr/local/bin/composer
+
+# Note: Adjust paths based on your system configuration
