@@ -13,7 +13,7 @@
 
 class ActivityLog extends Model
 {
-    protected $table = 'activity_logs';
+    protected string $table = 'activity_logs';
 
     /**
      * Log a user activity

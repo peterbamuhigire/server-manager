@@ -13,7 +13,7 @@
 
 class SystemMetric extends Model
 {
-    protected $table = 'system_metrics';
+    protected string $table = 'system_metrics';
 
     /**
      * Record a system metric
