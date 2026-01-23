@@ -20,10 +20,10 @@ CREATE TABLE IF NOT EXISTS `system_metrics` (
 -- Purpose: Track all user activities for auditing
 CREATE TABLE IF NOT EXISTS `activity_logs` (
     `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `user_id` INT UNSIGNED NOT NULL,
+    `user_id` INT NOT NULL,
     `action` VARCHAR(100) NOT NULL COMMENT 'login, logout, create_user, etc.',
     `entity_type` VARCHAR(50) NULL COMMENT 'user, app, domain, ssl, etc.',
-    `entity_id` INT UNSIGNED NULL COMMENT 'ID of the affected entity',
+    `entity_id` INT NULL COMMENT 'ID of the affected entity',
     `details` TEXT NULL COMMENT 'Additional details in JSON format',
     `ip_address` VARCHAR(45) NULL COMMENT 'IPv4 or IPv6',
     `user_agent` VARCHAR(255) NULL,
