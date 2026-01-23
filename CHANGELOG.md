@@ -9,17 +9,78 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Planned for Phase 3
-- Git SSH key management
-- GitHub connection testing
-- Repository management
-
 ### Planned for Phase 4+
 - Application deployment from GitHub
 - Domain management with virtual hosts
 - SSL certificate management
 - Database management
 - WordPress installer
+- Cron job management
+- Log viewer
+
+---
+
+## [0.3.0] - 2026-01-24
+
+### ✅ Phase 3: Git Integration - COMPLETE
+
+This release adds SSH key management and GitHub integration for repository deployments.
+
+### Added
+- **SSH Key Management**
+  - Generate RSA 4096-bit SSH key pairs
+  - Display SSH public key with one-click copy to clipboard
+  - View SSH key fingerprint for verification
+  - Delete and regenerate SSH keys
+  - Secure storage in storage/ssh directory (excluded from git)
+
+- **GitHub Integration**
+  - Test GitHub SSH connection with real-time feedback
+  - Step-by-step instructions for adding SSH key to GitHub
+  - Success/failure status display with detailed output
+  - AJAX-based connection testing (no page reload)
+
+- **Git Configuration**
+  - View current Git global configuration (user.name, user.email)
+  - Update Git configuration through web interface
+  - Git version detection and display
+  - Git installation status check
+
+- **User Interface**
+  - New "Git Integration" menu item in sidebar
+  - Dedicated Git settings page with clean layout
+  - Status indicators for Git installation and SSH key
+  - Copy to clipboard button for public key
+  - Responsive design for mobile devices
+  - "New" badge on Git menu item
+
+- **Activity Logging**
+  - Log SSH key generation events
+  - Log SSH key deletion events
+  - Log GitHub connection test attempts
+  - Log Git configuration updates
+  - All activities tracked in audit log
+
+- **Services & Controllers**
+  - GitService class for all Git operations
+  - GitController for HTTP request handling
+  - Cross-platform support (Windows & Linux)
+  - Comprehensive error handling
+
+### Changed
+- Updated sidebar navigation with Git Integration link
+- Updated dashboard version to 1.0.0 (Phase 3)
+- Updated roadmap on dashboard
+- Enhanced STATUS.md with Phase 3 completion (31% progress)
+- Updated README.md progress badges
+
+### Technical Details
+- **Lines of Code:** ~1,500 new lines
+- **Files Created:** 5 new files
+- **Files Updated:** 3 existing files
+- **SSH Key Type:** RSA 4096-bit
+- **Storage:** Secure directory with proper permissions
+- **Security:** Keys excluded from version control
 
 ---
 

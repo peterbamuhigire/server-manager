@@ -178,7 +178,7 @@ ob_start();
         <div class="space-y-3">
             <div class="flex justify-between">
                 <span class="text-gray-600">Application Version</span>
-                <span class="font-medium text-gray-800">1.0.0 (Phase 2)</span>
+                <span class="font-medium text-gray-800">1.0.0 (Phase 3)</span>
             </div>
             <div class="flex justify-between">
                 <span class="text-gray-600">Environment</span>
@@ -276,15 +276,11 @@ ob_start();
 
 <!-- Roadmap -->
 <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
-    <h3 class="text-lg font-bold text-blue-900 mb-2">Phase 2: Dashboard & Server Monitoring Complete</h3>
+    <h3 class="text-lg font-bold text-blue-900 mb-2">Phase 3: Git Integration Complete</h3>
     <p class="text-blue-700 mb-4">
-        Real-time server metrics and activity logging are now active! Monitor your server's health from the dashboard.
+        SSH key management and GitHub integration are now available! Generate SSH keys and test your GitHub connection.
     </p>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="bg-white rounded p-3 border border-blue-200">
-            <p class="text-sm font-medium text-gray-800">Coming in Phase 3</p>
-            <p class="text-xs text-gray-600 mt-1">Git Integration & SSH Keys</p>
-        </div>
         <div class="bg-white rounded p-3 border border-blue-200">
             <p class="text-sm font-medium text-gray-800">Coming in Phase 4</p>
             <p class="text-xs text-gray-600 mt-1">Application Deployment</p>
@@ -294,8 +290,12 @@ ob_start();
             <p class="text-xs text-gray-600 mt-1">Domain Management</p>
         </div>
         <div class="bg-white rounded p-3 border border-blue-200">
-            <p class="text-sm font-medium text-gray-800">Coming in Phase 6-13</p>
-            <p class="text-xs text-gray-600 mt-1">SSL, Databases, WordPress & More</p>
+            <p class="text-sm font-medium text-gray-800">Coming in Phase 6</p>
+            <p class="text-xs text-gray-600 mt-1">SSL Certificates</p>
+        </div>
+        <div class="bg-white rounded p-3 border border-blue-200">
+            <p class="text-sm font-medium text-gray-800">Coming in Phase 7-13</p>
+            <p class="text-xs text-gray-600 mt-1">Databases, WordPress & More</p>
         </div>
     </div>
 </div>

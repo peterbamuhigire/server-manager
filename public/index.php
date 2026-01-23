@@ -82,6 +82,9 @@ $routes = [
         '/users' => ['UserController', 'index', ['auth', 'root']],
         '/users/create' => ['UserController', 'create', ['auth', 'root']],
         '/users/edit' => ['UserController', 'edit', ['auth', 'root']],
+
+        // Git integration
+        '/git' => ['GitController', 'index', ['auth']],
     ],
     'POST' => [
         '/login' => ['AuthController', 'login', []],
@@ -92,6 +95,12 @@ $routes = [
         '/users/update' => ['UserController', 'update', ['auth', 'root', 'csrf']],
         '/users/delete' => ['UserController', 'delete', ['auth', 'root', 'csrf']],
         '/users/toggle-status' => ['UserController', 'toggleStatus', ['auth', 'root', 'csrf']],
+
+        // Git integration
+        '/git/generate-key' => ['GitController', 'generateKey', ['auth', 'csrf']],
+        '/git/delete-key' => ['GitController', 'deleteKey', ['auth', 'csrf']],
+        '/git/test-connection' => ['GitController', 'testConnection', ['auth', 'csrf']],
+        '/git/config' => ['GitController', 'updateConfig', ['auth', 'csrf']],
     ],
 ];
 

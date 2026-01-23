@@ -48,6 +48,14 @@ $currentPath = current_url();
                 </a>
                 <?php endif; ?>
 
+                <a href="/git" class="flex items-center px-6 py-3 <?= strpos($currentPath, '/git') === 0 ? 'bg-blue-600 border-r-4 border-blue-400' : 'hover:bg-gray-800' ?>">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+                    </svg>
+                    Git Integration
+                    <span class="ml-auto bg-green-600 px-2 py-1 text-xs rounded-full">New</span>
+                </a>
+
                 <div class="mt-8 px-6">
                     <p class="text-xs text-gray-400 uppercase tracking-wide mb-3">Coming Soon</p>
                 </div>
