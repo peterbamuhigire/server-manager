@@ -93,6 +93,10 @@ class UserController extends Controller
         if ($userId) {
             $role = $this->roleModel->find($validation['data']['role_id']);
             log_message("User created: {$validation['data']['username']} (Role: {$role['name']}) by " . $this->user()['username'], 'info');
+            log_activity('create_user', 'user', $userId, [
+                'username' => $validation['data']['username'],
+                'role' => $role['name']
+            ]);
 
             flash('success', 'User created successfully');
             $this->redirect('/users');
@@ -203,6 +207,9 @@ class UserController extends Controller
         // Update user
         if ($this->userModel->update($userId, $updateData)) {
             log_message("User updated: {$validation['data']['username']} by " . $this->user()['username'], 'info');
+            log_activity('update_user', 'user', $userId, [
+                'username' => $validation['data']['username']
+            ]);
 
             flash('success', 'User updated successfully');
             $this->redirect('/users');
@@ -245,6 +252,9 @@ class UserController extends Controller
         // Delete user
         if ($this->userModel->delete($userId)) {
             log_message("User deleted: {$user['username']} by " . $this->user()['username'], 'warning');
+            log_activity('delete_user', 'user', $userId, [
+                'username' => $user['username']
+            ]);
 
             $this->jsonSuccess('User deleted successfully');
         } else {
@@ -286,6 +296,10 @@ class UserController extends Controller
         if ($this->userModel->toggleStatus($userId)) {
             $newStatus = $user['status'] === 'active' ? 'disabled' : 'active';
             log_message("User status changed: {$user['username']} -> {$newStatus} by " . $this->user()['username'], 'info');
+            log_activity('toggle_user_status', 'user', $userId, [
+                'username' => $user['username'],
+                'new_status' => $newStatus
+            ]);
 
             $this->jsonSuccess('User status updated successfully', ['status' => $newStatus]);
         } else {

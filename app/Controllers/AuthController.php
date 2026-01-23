@@ -112,6 +112,7 @@ class AuthController extends Controller
 
         // Log successful login
         log_message("User logged in: {$username}", 'info');
+        log_activity('login');
 
         // Redirect to dashboard
         flash('success', 'Welcome back, ' . $user['username'] . '!');
@@ -125,6 +126,10 @@ class AuthController extends Controller
     {
         $username = session('username', 'Unknown');
 
+        // Log logout (before destroying session)
+        log_activity('logout');
+        log_message("User logged out: {$username}", 'info');
+
         // Delete session record
         $this->deleteSessionRecord();
 
@@ -135,9 +140,6 @@ class AuthController extends Controller
 
         // Destroy session
         session_destroy();
-
-        // Log logout
-        log_message("User logged out: {$username}", 'info');
 
         // Redirect to login
         flash('success', 'You have been logged out successfully');

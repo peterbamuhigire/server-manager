@@ -502,3 +502,39 @@ function get_user_agent(): string
 {
     return $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown';
 }
+
+// ============================================
+// Activity Logging
+// ============================================
+
+/**
+ * Log user activity
+ * @param string $action Action performed (login, create_user, etc.)
+ * @param string|null $entityType Entity type (user, app, domain, etc.)
+ * @param int|null $entityId Entity ID
+ * @param array|null $details Additional details
+ * @return bool Success status
+ */
+function log_activity(
+    string $action,
+    ?string $entityType = null,
+    ?int $entityId = null,
+    ?array $details = null
+): bool {
+    // Only log if user is authenticated
+    if (!auth_check()) {
+        return false;
+    }
+
+    require_once __DIR__ . '/../Models/ActivityLog.php';
+
+    return ActivityLog::log(
+        auth_id(),
+        $action,
+        $entityType,
+        $entityId,
+        $details,
+        get_client_ip(),
+        get_user_agent()
+    );
+}

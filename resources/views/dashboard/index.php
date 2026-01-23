@@ -18,7 +18,7 @@ ob_start();
         <?php endif; ?>
     </div>
 
-    <!-- Stats Cards (Coming Soon) -->
+    <!-- Stats Cards -->
     <div class="bg-white rounded-lg shadow p-6">
         <div class="flex items-center">
             <div class="flex-shrink-0 bg-blue-100 rounded-lg p-3">
@@ -28,7 +28,8 @@ ob_start();
             </div>
             <div class="ml-4">
                 <p class="text-sm text-gray-500">Total Apps</p>
-                <p class="text-2xl font-bold text-gray-800">0</p>
+                <p class="text-2xl font-bold text-gray-800"><?= $stats['apps'] ?></p>
+                <p class="text-xs text-gray-400 mt-1">Phase 4</p>
             </div>
         </div>
     </div>
@@ -42,7 +43,8 @@ ob_start();
             </div>
             <div class="ml-4">
                 <p class="text-sm text-gray-500">Active Domains</p>
-                <p class="text-2xl font-bold text-gray-800">0</p>
+                <p class="text-2xl font-bold text-gray-800"><?= $stats['domains'] ?></p>
+                <p class="text-xs text-gray-400 mt-1">Phase 5</p>
             </div>
         </div>
     </div>
@@ -56,7 +58,8 @@ ob_start();
             </div>
             <div class="ml-4">
                 <p class="text-sm text-gray-500">SSL Certificates</p>
-                <p class="text-2xl font-bold text-gray-800">0</p>
+                <p class="text-2xl font-bold text-gray-800"><?= $stats['ssl_active'] ?></p>
+                <p class="text-xs text-gray-400 mt-1">Phase 6</p>
             </div>
         </div>
     </div>
@@ -70,21 +73,112 @@ ob_start();
             </div>
             <div class="ml-4">
                 <p class="text-sm text-gray-500">Databases</p>
-                <p class="text-2xl font-bold text-gray-800">0</p>
+                <p class="text-2xl font-bold text-gray-800"><?= $stats['databases'] ?></p>
+                <p class="text-xs text-gray-400 mt-1">Phase 7</p>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Info Cards -->
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+<!-- Server Metrics -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <!-- System Health -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
+            <svg class="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            Server Health
+        </h3>
+
+        <!-- CPU Usage -->
+        <div class="mb-4">
+            <div class="flex justify-between mb-1">
+                <span class="text-sm font-medium text-gray-700">CPU Usage</span>
+                <span class="text-sm font-medium text-gray-700"><?= number_format($metrics['cpu'], 2) ?>%</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2.5">
+                <?php
+                $cpuColor = $metrics['cpu'] > 80 ? 'bg-red-600' : ($metrics['cpu'] > 60 ? 'bg-yellow-500' : 'bg-green-600');
+                ?>
+                <div class="<?= $cpuColor ?> h-2.5 rounded-full transition-all duration-300" style="width: <?= $metrics['cpu'] ?>%"></div>
+            </div>
+        </div>
+
+        <!-- RAM Usage -->
+        <div class="mb-4">
+            <div class="flex justify-between mb-1">
+                <span class="text-sm font-medium text-gray-700">RAM Usage</span>
+                <span class="text-sm font-medium text-gray-700"><?= number_format($metrics['ram'], 2) ?>%</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2.5">
+                <?php
+                $ramColor = $metrics['ram'] > 80 ? 'bg-red-600' : ($metrics['ram'] > 60 ? 'bg-yellow-500' : 'bg-green-600');
+                ?>
+                <div class="<?= $ramColor ?> h-2.5 rounded-full transition-all duration-300" style="width: <?= $metrics['ram'] ?>%"></div>
+            </div>
+        </div>
+
+        <!-- Disk Usage -->
+        <div class="mb-4">
+            <div class="flex justify-between mb-1">
+                <span class="text-sm font-medium text-gray-700">Disk Usage</span>
+                <span class="text-sm font-medium text-gray-700"><?= number_format($metrics['disk'], 2) ?>%</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2.5">
+                <?php
+                $diskColor = $metrics['disk'] > 90 ? 'bg-red-600' : ($metrics['disk'] > 75 ? 'bg-yellow-500' : 'bg-green-600');
+                ?>
+                <div class="<?= $diskColor ?> h-2.5 rounded-full transition-all duration-300" style="width: <?= $metrics['disk'] ?>%"></div>
+            </div>
+            <p class="text-xs text-gray-500 mt-1">
+                <?= $diskInfo['used'] ?> used of <?= $diskInfo['total'] ?> (<?= $diskInfo['free'] ?> free)
+            </p>
+        </div>
+
+        <!-- Service Status -->
+        <div class="border-t pt-4 mt-4">
+            <p class="text-sm font-medium text-gray-700 mb-3">Service Status</p>
+            <div class="grid grid-cols-2 gap-3">
+                <div class="flex items-center justify-between p-2 bg-gray-50 rounded">
+                    <span class="text-sm text-gray-700">Apache</span>
+                    <?php if ($metrics['apache']): ?>
+                        <span class="flex items-center text-green-600 text-xs font-medium">
+                            <span class="w-2 h-2 bg-green-600 rounded-full mr-1"></span>
+                            Running
+                        </span>
+                    <?php else: ?>
+                        <span class="flex items-center text-red-600 text-xs font-medium">
+                            <span class="w-2 h-2 bg-red-600 rounded-full mr-1"></span>
+                            Stopped
+                        </span>
+                    <?php endif; ?>
+                </div>
+                <div class="flex items-center justify-between p-2 bg-gray-50 rounded">
+                    <span class="text-sm text-gray-700">MySQL</span>
+                    <?php if ($metrics['mysql']): ?>
+                        <span class="flex items-center text-green-600 text-xs font-medium">
+                            <span class="w-2 h-2 bg-green-600 rounded-full mr-1"></span>
+                            Running
+                        </span>
+                    <?php else: ?>
+                        <span class="flex items-center text-red-600 text-xs font-medium">
+                            <span class="w-2 h-2 bg-red-600 rounded-full mr-1"></span>
+                            Stopped
+                        </span>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- System Info -->
     <div class="bg-white rounded-lg shadow p-6">
         <h3 class="text-lg font-bold text-gray-800 mb-4">System Information</h3>
         <div class="space-y-3">
             <div class="flex justify-between">
                 <span class="text-gray-600">Application Version</span>
-                <span class="font-medium text-gray-800">1.0.0 (Phase 1)</span>
+                <span class="font-medium text-gray-800">1.0.0 (Phase 2)</span>
             </div>
             <div class="flex justify-between">
                 <span class="text-gray-600">Environment</span>
@@ -94,6 +188,22 @@ ob_start();
                 <span class="text-gray-600">PHP Version</span>
                 <span class="font-medium text-gray-800"><?= PHP_VERSION ?></span>
             </div>
+            <?php if ($uptime !== 'Unknown'): ?>
+            <div class="flex justify-between">
+                <span class="text-gray-600">System Uptime</span>
+                <span class="font-medium text-gray-800"><?= $uptime ?></span>
+            </div>
+            <?php endif; ?>
+            <?php if ($loadAverage): ?>
+            <div class="flex justify-between">
+                <span class="text-gray-600">Load Average</span>
+                <span class="font-medium text-gray-800 text-xs">
+                    <?= number_format($loadAverage['1min'], 2) ?>,
+                    <?= number_format($loadAverage['5min'], 2) ?>,
+                    <?= number_format($loadAverage['15min'], 2) ?>
+                </span>
+            </div>
+            <?php endif; ?>
             <div class="flex justify-between">
                 <span class="text-gray-600">Your IP Address</span>
                 <span class="font-medium text-gray-800"><?= get_client_ip() ?></span>
@@ -103,6 +213,34 @@ ob_start();
                 <span class="font-medium text-gray-800"><?= $user['last_login'] ? format_date($user['last_login']) : 'Never' ?></span>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- Recent Activity & Quick Actions -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <!-- Recent Activity -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-lg font-bold text-gray-800 mb-4">Recent Activity</h3>
+        <?php if (count($recentActivities) > 0): ?>
+        <div class="space-y-3">
+            <?php foreach ($recentActivities as $activity): ?>
+            <div class="flex items-start border-l-2 border-blue-500 pl-3 py-1">
+                <div class="flex-1">
+                    <p class="text-sm text-gray-800">
+                        <span class="font-medium"><?= e($activity['username']) ?></span>
+                        <span class="text-gray-600"><?= str_replace('_', ' ', $activity['action']) ?></span>
+                        <?php if ($activity['entity_type']): ?>
+                        <span class="text-gray-500">(<?= e($activity['entity_type']) ?>)</span>
+                        <?php endif; ?>
+                    </p>
+                    <p class="text-xs text-gray-500 mt-1"><?= format_date($activity['created_at']) ?></p>
+                </div>
+            </div>
+            <?php endforeach; ?>
+        </div>
+        <?php else: ?>
+        <p class="text-gray-500 text-sm">No recent activity to display.</p>
+        <?php endif; ?>
     </div>
 
     <!-- Quick Actions -->
@@ -130,23 +268,19 @@ ob_start();
                 View Profile
             </a>
             <div class="block w-full bg-gray-200 text-gray-500 py-3 px-4 rounded-lg font-medium text-center cursor-not-allowed">
-                <span class="text-sm">More features coming in Phase 2+</span>
+                <span class="text-sm">More features coming in Phase 3+</span>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Coming Soon Notice -->
-<div class="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
-    <h3 class="text-lg font-bold text-blue-900 mb-2">Phase 1: Authentication & RBAC Complete</h3>
+<!-- Roadmap -->
+<div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
+    <h3 class="text-lg font-bold text-blue-900 mb-2">Phase 2: Dashboard & Server Monitoring Complete</h3>
     <p class="text-blue-700 mb-4">
-        The foundation of Chwezi Server Manager is now ready! You can now manage users and their permissions.
+        Real-time server metrics and activity logging are now active! Monitor your server's health from the dashboard.
     </p>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="bg-white rounded p-3 border border-blue-200">
-            <p class="text-sm font-medium text-gray-800">Coming in Phase 2</p>
-            <p class="text-xs text-gray-600 mt-1">Dashboard Stats & Server Monitoring</p>
-        </div>
         <div class="bg-white rounded p-3 border border-blue-200">
             <p class="text-sm font-medium text-gray-800">Coming in Phase 3</p>
             <p class="text-xs text-gray-600 mt-1">Git Integration & SSH Keys</p>
@@ -156,8 +290,12 @@ ob_start();
             <p class="text-xs text-gray-600 mt-1">Application Deployment</p>
         </div>
         <div class="bg-white rounded p-3 border border-blue-200">
-            <p class="text-sm font-medium text-gray-800">Coming in Phase 5-13</p>
-            <p class="text-xs text-gray-600 mt-1">Domains, SSL, Databases, WordPress & More</p>
+            <p class="text-sm font-medium text-gray-800">Coming in Phase 5</p>
+            <p class="text-xs text-gray-600 mt-1">Domain Management</p>
+        </div>
+        <div class="bg-white rounded p-3 border border-blue-200">
+            <p class="text-sm font-medium text-gray-800">Coming in Phase 6-13</p>
+            <p class="text-xs text-gray-600 mt-1">SSL, Databases, WordPress & More</p>
         </div>
     </div>
 </div>

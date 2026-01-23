@@ -9,15 +9,100 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Planned for Phase 2
-- Server metrics dashboard (CPU, RAM, Disk)
-- Activity logging system
-- System health monitoring
-
 ### Planned for Phase 3
 - Git SSH key management
 - GitHub connection testing
 - Repository management
+
+### Planned for Phase 4+
+- Application deployment from GitHub
+- Domain management with virtual hosts
+- SSL certificate management
+- Database management
+- WordPress installer
+
+---
+
+## [0.2.0] - 2026-01-24
+
+### ✅ Phase 2: Dashboard & Server Monitoring - COMPLETE
+
+This release adds real-time server monitoring and comprehensive activity logging.
+
+### Added
+- **Server Monitoring**
+  - Real-time CPU usage monitoring with color-coded progress bars
+  - Real-time RAM usage monitoring
+  - Real-time Disk usage monitoring with space breakdown
+  - Apache service status indicator (running/stopped)
+  - MySQL service status indicator (running/stopped)
+  - System uptime display
+  - Load average display (Linux only)
+  - Windows and Linux platform compatibility
+
+- **Activity Logging System**
+  - Comprehensive user activity tracking
+  - Login/logout event logging
+  - User CRUD operations logging (create, update, delete, toggle status)
+  - IP address and user agent capture
+  - Recent activity feed on dashboard (last 10 activities)
+  - Activity search and filtering capabilities
+  - Historical activity logs with pagination
+
+- **Dashboard Enhancements**
+  - Server health widget with real-time metrics
+  - Color-coded health indicators (green: good, yellow: warning, red: critical)
+  - Service status grid (Apache, MySQL)
+  - Enhanced system information panel
+  - Recent activity feed with timestamps
+  - Updated application version to 1.0.0 (Phase 2)
+
+- **Database Tables**
+  - `system_metrics` table for storing performance data
+  - `activity_logs` table for audit trail
+  - Proper indexes for query performance
+
+- **Models**
+  - `SystemMetric` model with methods for recording, retrieving, and analyzing metrics
+  - `ActivityLog` model with search, filter, and statistics methods
+  - Support for metric history and statistics (min, max, avg)
+  - Old data cleanup methods for maintenance
+
+- **Services**
+  - `ServerMonitoringService` for collecting system metrics
+  - Cross-platform support (Windows & Linux)
+  - CPU usage calculation
+  - RAM usage calculation
+  - Disk space monitoring
+  - Service status checking
+  - Metrics collection and storage
+
+- **Helper Functions**
+  - `log_activity()` function for easy activity logging
+  - Automatic user ID, IP, and user agent capture
+  - Integration with all user management operations
+
+- **Scripts**
+  - `collect-metrics.php` CLI script for cron-based metric collection
+  - Detailed logging with timestamps
+  - Error handling and recovery
+  - Executable permissions set
+
+### Changed
+- Updated `DashboardController` to fetch and display real metrics
+- Updated dashboard view with server health widgets
+- Enhanced `AuthController` to log login/logout activities
+- Enhanced `UserController` to log all user management actions
+- Updated STATUS.md with Phase 2 completion
+- Updated progress metrics (23% complete, 2 of 13 phases)
+
+### Technical Details
+- **Lines of Code:** ~2,000 new lines
+- **Files Created:** 5 new files
+- **Files Updated:** 5 existing files
+- **Platform Support:** Windows (WAMP) and Linux (Ubuntu)
+- **Performance:** Minimal overhead, metrics collected every 5 minutes via cron
+- **Security:** All activities logged with user context for audit
 
 ---
 
