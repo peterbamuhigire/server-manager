@@ -15,9 +15,9 @@ ob_start();
             <p class="text-gray-600 mt-1">Your terminal command execution history</p>
         </div>
         <div class="flex gap-2">
-            <form method="POST" action="/terminal/clear" onsubmit="return confirm('Are you sure you want to clear your command history? This action cannot be undone.');">
+            <form method="POST" action="/terminal/clear" id="clear-history-form">
                 <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
-                <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+                <button type="button" onclick="confirmClearHistory()" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
                     Clear History
                 </button>
             </form>
@@ -25,6 +25,22 @@ ob_start();
                 Back to Terminal
             </a>
         </div>
+        <script>
+        function confirmClearHistory() {
+            SwalUtil.confirm({
+                title: 'Clear History?',
+                text: 'Are you sure you want to clear your command history? This action cannot be undone.',
+                icon: 'warning',
+                confirmText: 'Yes, clear it',
+                confirmColor: '#dc2626'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    SwalUtil.loading('Clearing history...');
+                    document.getElementById('clear-history-form').submit();
+                }
+            });
+        }
+        </script>
     </div>
 </div>
 

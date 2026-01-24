@@ -550,147 +550,241 @@ ob_start();
 <script>
 const csrfToken = '<?= $_SESSION['csrf_token'] ?? '' ?>';
 
-function showToast(message, type = 'success') {
-    const toast = document.createElement('div');
-    toast.className = `fixed bottom-4 right-4 px-6 py-3 rounded-lg text-white font-medium z-50 ${type === 'success' ? 'bg-green-600' : 'bg-red-600'}`;
-    toast.textContent = message;
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 3000);
-}
-
 function registerApp(name) {
-    if (!confirm(`Register "${name}" as an application?`)) return;
-
-    fetch('/discovery/register-app', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `name=${encodeURIComponent(name)}&csrf_token=${encodeURIComponent(csrfToken)}`
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            showToast(data.message);
-            location.reload();
-        } else {
-            showToast(data.message, 'error');
+    SwalUtil.confirm({
+        title: 'Register Application?',
+        text: `Register "${name}" as an application in the system?`,
+        icon: 'question',
+        confirmText: 'Yes, register it',
+        confirmColor: '#10b981'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            SwalUtil.loading('Registering application...');
+            fetch('/discovery/register-app', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `name=${encodeURIComponent(name)}&csrf_token=${encodeURIComponent(csrfToken)}`
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Registered!',
+                        text: data.message,
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => location.reload());
+                } else {
+                    SwalUtil.error(data.message);
+                }
+            })
+            .catch(err => SwalUtil.error('Error: ' + err.message));
         }
-    })
-    .catch(err => showToast('Error: ' + err.message, 'error'));
+    });
 }
 
 function unregisterApp(id, name) {
-    if (!confirm(`Unregister "${name}"? The files will remain intact.`)) return;
-
-    fetch('/discovery/unregister-app', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `id=${id}&csrf_token=${encodeURIComponent(csrfToken)}`
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            showToast(data.message);
-            location.reload();
-        } else {
-            showToast(data.message, 'error');
+    SwalUtil.confirm({
+        title: 'Unregister Application?',
+        text: `Remove "${name}" from management? The files will remain intact.`,
+        icon: 'warning',
+        confirmText: 'Yes, unregister',
+        confirmColor: '#dc2626'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            SwalUtil.loading('Unregistering...');
+            fetch('/discovery/unregister-app', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `id=${id}&csrf_token=${encodeURIComponent(csrfToken)}`
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Unregistered!',
+                        text: data.message,
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => location.reload());
+                } else {
+                    SwalUtil.error(data.message);
+                }
+            })
+            .catch(err => SwalUtil.error('Error: ' + err.message));
         }
-    })
-    .catch(err => showToast('Error: ' + err.message, 'error'));
+    });
 }
 
 function registerDomain(serverName, documentRoot, sslEnabled) {
-    if (!confirm(`Register "${serverName}" as a domain?`)) return;
-
-    fetch('/discovery/register-domain', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `server_name=${encodeURIComponent(serverName)}&document_root=${encodeURIComponent(documentRoot)}&ssl_enabled=${sslEnabled}&csrf_token=${encodeURIComponent(csrfToken)}`
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            showToast(data.message);
-            location.reload();
-        } else {
-            showToast(data.message, 'error');
+    SwalUtil.confirm({
+        title: 'Register Domain?',
+        text: `Register "${serverName}" as a managed domain?`,
+        icon: 'question',
+        confirmText: 'Yes, register it',
+        confirmColor: '#10b981'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            SwalUtil.loading('Registering domain...');
+            fetch('/discovery/register-domain', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `server_name=${encodeURIComponent(serverName)}&document_root=${encodeURIComponent(documentRoot)}&ssl_enabled=${sslEnabled}&csrf_token=${encodeURIComponent(csrfToken)}`
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Registered!',
+                        text: data.message,
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => location.reload());
+                } else {
+                    SwalUtil.error(data.message);
+                }
+            })
+            .catch(err => SwalUtil.error('Error: ' + err.message));
         }
-    })
-    .catch(err => showToast('Error: ' + err.message, 'error'));
+    });
 }
 
 function unregisterDomain(id, name) {
-    if (!confirm(`Unregister "${name}"? The Apache config will remain intact.`)) return;
-
-    fetch('/discovery/unregister-domain', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `id=${id}&csrf_token=${encodeURIComponent(csrfToken)}`
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            showToast(data.message);
-            location.reload();
-        } else {
-            showToast(data.message, 'error');
+    SwalUtil.confirm({
+        title: 'Unregister Domain?',
+        text: `Remove "${name}" from management? The Apache config will remain intact.`,
+        icon: 'warning',
+        confirmText: 'Yes, unregister',
+        confirmColor: '#dc2626'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            SwalUtil.loading('Unregistering...');
+            fetch('/discovery/unregister-domain', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `id=${id}&csrf_token=${encodeURIComponent(csrfToken)}`
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Unregistered!',
+                        text: data.message,
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => location.reload());
+                } else {
+                    SwalUtil.error(data.message);
+                }
+            })
+            .catch(err => SwalUtil.error('Error: ' + err.message));
         }
-    })
-    .catch(err => showToast('Error: ' + err.message, 'error'));
+    });
 }
 
 function registerDatabase(name) {
-    if (!confirm(`Register "${name}" as a managed database?`)) return;
-
-    fetch('/discovery/register-database', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `name=${encodeURIComponent(name)}&csrf_token=${encodeURIComponent(csrfToken)}`
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            showToast(data.message);
-            location.reload();
-        } else {
-            showToast(data.message, 'error');
+    SwalUtil.confirm({
+        title: 'Register Database?',
+        text: `Register "${name}" as a managed database?`,
+        icon: 'question',
+        confirmText: 'Yes, register it',
+        confirmColor: '#10b981'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            SwalUtil.loading('Registering database...');
+            fetch('/discovery/register-database', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `name=${encodeURIComponent(name)}&csrf_token=${encodeURIComponent(csrfToken)}`
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Registered!',
+                        text: data.message,
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => location.reload());
+                } else {
+                    SwalUtil.error(data.message);
+                }
+            })
+            .catch(err => SwalUtil.error('Error: ' + err.message));
         }
-    })
-    .catch(err => showToast('Error: ' + err.message, 'error'));
+    });
 }
 
 function unregisterDatabase(id, name) {
-    if (!confirm(`Unregister "${name}"? The actual database will remain intact.`)) return;
-
-    fetch('/discovery/unregister-database', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `id=${id}&csrf_token=${encodeURIComponent(csrfToken)}`
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            showToast(data.message);
-            location.reload();
-        } else {
-            showToast(data.message, 'error');
+    SwalUtil.confirm({
+        title: 'Unregister Database?',
+        text: `Remove "${name}" from management? The actual database will remain intact.`,
+        icon: 'warning',
+        confirmText: 'Yes, unregister',
+        confirmColor: '#dc2626'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            SwalUtil.loading('Unregistering...');
+            fetch('/discovery/unregister-database', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `id=${id}&csrf_token=${encodeURIComponent(csrfToken)}`
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Unregistered!',
+                        text: data.message,
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => location.reload());
+                } else {
+                    SwalUtil.error(data.message);
+                }
+            })
+            .catch(err => SwalUtil.error('Error: ' + err.message));
         }
-    })
-    .catch(err => showToast('Error: ' + err.message, 'error'));
+    });
 }
 
 function viewConfig(filename) {
+    SwalUtil.loading('Loading configuration...');
     fetch('/discovery/view-config?file=' + encodeURIComponent(filename))
         .then(response => response.json())
         .then(data => {
+            Swal.close();
             if (data.success) {
-                document.getElementById('configModalTitle').textContent = data.data.file;
-                document.getElementById('configContent').textContent = data.data.content;
-                document.getElementById('configModal').classList.remove('hidden');
+                Swal.fire({
+                    title: data.data.file,
+                    html: `<pre class="bg-gray-900 text-green-400 p-4 rounded-lg text-sm font-mono overflow-x-auto text-left max-h-96 overflow-y-auto">${escapeHtml(data.data.content)}</pre>`,
+                    width: '80%',
+                    showCloseButton: true,
+                    showConfirmButton: false,
+                    customClass: {
+                        popup: 'swal-wide'
+                    }
+                });
             } else {
-                showToast(data.message || 'Failed to load config', 'error');
+                SwalUtil.error(data.message || 'Failed to load config');
             }
         })
-        .catch(err => showToast('Error loading config: ' + err.message, 'error'));
+        .catch(err => {
+            Swal.close();
+            SwalUtil.error('Error loading config: ' + err.message);
+        });
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
 function closeConfigModal(event) {
@@ -701,7 +795,7 @@ function closeConfigModal(event) {
 
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
-        closeConfigModal();
+        Swal.close();
     }
 });
 </script>

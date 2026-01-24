@@ -335,11 +335,7 @@ class ServerDiscoveryService
     private function getDatabaseInfo($dbName)
     {
         try {
-            $dbConfig = [
-                'host' => config('database.host', 'localhost'),
-                'username' => config('database.username', 'root'),
-                'password' => config('database.password', ''),
-            ];
+            $dbConfig = config('database');
 
             $pdo = new PDO(
                 "mysql:host={$dbConfig['host']}",
@@ -660,11 +656,7 @@ class ServerDiscoveryService
         $databases = [];
 
         try {
-            $dbConfig = [
-                'host' => config('database.host', 'localhost'),
-                'username' => config('database.username', 'root'),
-                'password' => config('database.password', ''),
-            ];
+            $dbConfig = config('database');
 
             $pdo = new PDO(
                 "mysql:host={$dbConfig['host']}",

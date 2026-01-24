@@ -221,95 +221,127 @@ ob_start();
 
 <script>
 function deployApp(id) {
-    if (!confirm('Are you sure you want to deploy this application? This will clone the repository and configure Apache.')) {
-        return;
-    }
+    SwalUtil.confirm({
+        title: 'Deploy Application?',
+        text: 'This will clone the repository and configure Apache.',
+        icon: 'question',
+        confirmText: 'Yes, deploy',
+        confirmColor: '#10b981'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            Swal.fire({
+                title: 'Deploying...',
+                html: 'Please wait while the application is being deployed.',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
 
-    const btn = event.target;
-    const originalText = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = '<svg class="inline-block w-5 h-5 mr-1 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg> Deploying...';
-
-    fetch(`/apps/${id}/deploy`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            fetch(`/apps/${id}/deploy`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Deployed!',
+                        text: 'Application has been deployed successfully.',
+                        timer: 2000,
+                        showConfirmButton: false
+                    }).then(() => window.location.reload());
+                } else {
+                    SwalUtil.error('Deployment failed: ' + data.message);
+                }
+            })
+            .catch(error => {
+                SwalUtil.error('An error occurred: ' + error.message);
+            });
         }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            window.location.reload();
-        } else {
-            alert('Deployment failed: ' + data.message);
-            btn.disabled = false;
-            btn.innerHTML = originalText;
-        }
-    })
-    .catch(error => {
-        alert('An error occurred: ' + error.message);
-        btn.disabled = false;
-        btn.innerHTML = originalText;
     });
 }
 
 function redeployApp(id) {
-    if (!confirm('Are you sure you want to redeploy this application? This will pull the latest changes from the repository.')) {
-        return;
-    }
+    SwalUtil.confirm({
+        title: 'Redeploy Application?',
+        text: 'This will pull the latest changes from the repository.',
+        icon: 'question',
+        confirmText: 'Yes, redeploy',
+        confirmColor: '#3b82f6'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            Swal.fire({
+                title: 'Redeploying...',
+                html: 'Please wait while the application is being updated.',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
 
-    const btn = event.target;
-    const originalText = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = '<svg class="inline-block w-5 h-5 mr-1 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg> Redeploying...';
-
-    fetch(`/apps/${id}/redeploy`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            fetch(`/apps/${id}/redeploy`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Redeployed!',
+                        text: 'Application has been updated successfully.',
+                        timer: 2000,
+                        showConfirmButton: false
+                    }).then(() => window.location.reload());
+                } else {
+                    SwalUtil.error('Redeploy failed: ' + data.message);
+                }
+            })
+            .catch(error => {
+                SwalUtil.error('An error occurred: ' + error.message);
+            });
         }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            window.location.reload();
-        } else {
-            alert('Redeploy failed: ' + data.message);
-            btn.disabled = false;
-            btn.innerHTML = originalText;
-        }
-    })
-    .catch(error => {
-        alert('An error occurred: ' + error.message);
-        btn.disabled = false;
-        btn.innerHTML = originalText;
     });
 }
 
 function deleteApp(id) {
-    if (!confirm('Are you sure you want to delete this application? This will remove all files and cannot be undone.')) {
-        return;
-    }
+    SwalUtil.confirmDelete('application').then((result) => {
+        if (result.isConfirmed) {
+            SwalUtil.loading('Deleting application...');
 
-    fetch(`/apps/${id}`, {
-        method: 'DELETE',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            fetch(`/apps/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Deleted!',
+                        text: 'Application has been deleted.',
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => window.location.href = '/apps');
+                } else {
+                    SwalUtil.error('Delete failed: ' + data.message);
+                }
+            })
+            .catch(error => {
+                SwalUtil.error('An error occurred: ' + error.message);
+            });
         }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            window.location.href = '/apps';
-        } else {
-            alert('Delete failed: ' + data.message);
-        }
-    })
-    .catch(error => {
-        alert('An error occurred: ' + error.message);
     });
 }
 </script>

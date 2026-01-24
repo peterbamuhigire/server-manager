@@ -28,11 +28,12 @@ class DatabaseService
             mkdir($this->backupPath, 0755, true);
         }
 
-        // Get database config
+        // Get database config from config/database.php
+        $dbConfig = config('database');
         $this->dbConfig = [
-            'host' => config('db.host', 'localhost'),
-            'username' => config('db.root_username', 'root'),
-            'password' => config('db.root_password', ''),
+            'host' => $dbConfig['host'],
+            'username' => $dbConfig['username'],
+            'password' => $dbConfig['password'],
         ];
     }
 
@@ -360,14 +361,14 @@ class DatabaseService
     {
         // For Windows WAMP
         if (stripos(PHP_OS, 'WIN') === 0) {
-            $mysqldump = 'C:/wamp64/bin/mysql/mysql8.4.7/bin/mysqldump.exe';
+            $mysqldump = escapeshellarg('C:/wamp64/bin/mysql/mysql8.4.7/bin/mysqldump.exe');
         } else {
-            $mysqldump = 'mysqldump';
+            $mysqldump = 'mysqldump'; // Don't escape command name on Linux
         }
 
         $command = sprintf(
             '%s --user=%s --password=%s --host=%s %s > %s 2>&1',
-            escapeshellarg($mysqldump),
+            $mysqldump,
             escapeshellarg($this->dbConfig['username']),
             escapeshellarg($this->dbConfig['password']),
             escapeshellarg($this->dbConfig['host']),
@@ -378,9 +379,24 @@ class DatabaseService
         exec($command, $output, $returnCode);
 
         if ($returnCode !== 0) {
+            $errorOutput = implode("\n", $output);
+            $errorMessage = "Database backup failed.\n\n";
+            $errorMessage .= "Database: {$databaseName}\n";
+            $errorMessage .= "Exit Code: {$returnCode}\n\n";
+
+            if (!empty($errorOutput)) {
+                $errorMessage .= "Error Details:\n{$errorOutput}";
+            } else {
+                $errorMessage .= "No additional error information available. Please check:\n";
+                $errorMessage .= "• MySQL credentials are correct\n";
+                $errorMessage .= "• mysqldump is installed and accessible\n";
+                $errorMessage .= "• Database exists and is accessible\n";
+                $errorMessage .= "• Backup directory is writable";
+            }
+
             return [
                 'success' => false,
-                'message' => 'Backup failed: ' . implode("\n", $output)
+                'message' => $errorMessage
             ];
         }
 
@@ -394,14 +410,14 @@ class DatabaseService
     {
         // For Windows WAMP
         if (stripos(PHP_OS, 'WIN') === 0) {
-            $mysql = 'C:/wamp64/bin/mysql/mysql8.4.7/bin/mysql.exe';
+            $mysql = escapeshellarg('C:/wamp64/bin/mysql/mysql8.4.7/bin/mysql.exe');
         } else {
-            $mysql = 'mysql';
+            $mysql = 'mysql'; // Don't escape command name on Linux
         }
 
         $command = sprintf(
             '%s --user=%s --password=%s --host=%s %s < %s 2>&1',
-            escapeshellarg($mysql),
+            $mysql,
             escapeshellarg($this->dbConfig['username']),
             escapeshellarg($this->dbConfig['password']),
             escapeshellarg($this->dbConfig['host']),
@@ -412,9 +428,25 @@ class DatabaseService
         exec($command, $output, $returnCode);
 
         if ($returnCode !== 0) {
+            $errorOutput = implode("\n", $output);
+            $errorMessage = "Database restore failed.\n\n";
+            $errorMessage .= "Database: {$databaseName}\n";
+            $errorMessage .= "Backup File: " . basename($inputFile) . "\n";
+            $errorMessage .= "Exit Code: {$returnCode}\n\n";
+
+            if (!empty($errorOutput)) {
+                $errorMessage .= "Error Details:\n{$errorOutput}";
+            } else {
+                $errorMessage .= "No additional error information available. Please check:\n";
+                $errorMessage .= "• MySQL credentials are correct\n";
+                $errorMessage .= "• Backup file exists and is readable\n";
+                $errorMessage .= "• Database exists and is accessible\n";
+                $errorMessage .= "• Backup file is not corrupted";
+            }
+
             return [
                 'success' => false,
-                'message' => 'Restore failed: ' . implode("\n", $output)
+                'message' => $errorMessage
             ];
         }
 

@@ -118,8 +118,9 @@ function copyMatches() {
     const matches = <?= json_encode($matches) ?>;
     const content = matches.join('');
     navigator.clipboard.writeText(content).then(() => {
-        alert('Matching lines copied to clipboard!');
+        SwalUtil.success('Matching lines copied to clipboard!');
     }).catch(err => {
+        SwalUtil.error('Failed to copy to clipboard');
         console.error('Failed to copy:', err);
     });
 }

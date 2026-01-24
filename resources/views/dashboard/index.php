@@ -29,7 +29,7 @@ ob_start();
             <div class="ml-4">
                 <p class="text-sm text-gray-500">Total Apps</p>
                 <p class="text-2xl font-bold text-gray-800"><?= $stats['apps'] ?></p>
-                <p class="text-xs text-gray-400 mt-1">Phase 4</p>
+                <a href="/apps" class="text-xs text-blue-500 hover:text-blue-700 mt-1">Manage</a>
             </div>
         </div>
     </div>
@@ -44,7 +44,7 @@ ob_start();
             <div class="ml-4">
                 <p class="text-sm text-gray-500">Active Domains</p>
                 <p class="text-2xl font-bold text-gray-800"><?= $stats['domains'] ?></p>
-                <p class="text-xs text-gray-400 mt-1">Phase 5</p>
+                <a href="/domains" class="text-xs text-blue-500 hover:text-blue-700 mt-1">Manage</a>
             </div>
         </div>
     </div>
@@ -59,7 +59,7 @@ ob_start();
             <div class="ml-4">
                 <p class="text-sm text-gray-500">SSL Certificates</p>
                 <p class="text-2xl font-bold text-gray-800"><?= $stats['ssl_active'] ?></p>
-                <p class="text-xs text-gray-400 mt-1">Phase 6</p>
+                <a href="/ssl" class="text-xs text-blue-500 hover:text-blue-700 mt-1">Manage</a>
             </div>
         </div>
     </div>
@@ -74,7 +74,7 @@ ob_start();
             <div class="ml-4">
                 <p class="text-sm text-gray-500">Databases</p>
                 <p class="text-2xl font-bold text-gray-800"><?= $stats['databases'] ?></p>
-                <p class="text-xs text-gray-400 mt-1">Phase 7</p>
+                <a href="/databases" class="text-xs text-blue-500 hover:text-blue-700 mt-1">Manage</a>
             </div>
         </div>
     </div>

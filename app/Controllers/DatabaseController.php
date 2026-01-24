@@ -184,6 +184,13 @@ class DatabaseController extends Controller
 
         $result = $this->databaseService->backupDatabase($id, 'manual');
 
+        // Check if AJAX request
+        if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+            header('Content-Type: application/json');
+            echo json_encode($result);
+            exit;
+        }
+
         if ($result['success']) {
             $_SESSION['success'] = $result['message'];
         } else {
@@ -204,14 +211,26 @@ class DatabaseController extends Controller
 
         $backupId = $_POST['backup_id'] ?? null;
         $databaseId = $_POST['database_id'] ?? null;
+        $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
 
         if (!$backupId) {
+            if ($isAjax) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'message' => 'Backup ID is required']);
+                exit;
+            }
             $_SESSION['error'] = 'Backup ID is required';
             header('Location: /databases/' . $databaseId);
             exit;
         }
 
         $result = $this->databaseService->restoreDatabase($backupId);
+
+        if ($isAjax) {
+            header('Content-Type: application/json');
+            echo json_encode($result);
+            exit;
+        }
 
         if ($result['success']) {
             $_SESSION['success'] = $result['message'];
@@ -232,6 +251,13 @@ class DatabaseController extends Controller
         $this->verifyCsrf();
 
         $result = $this->databaseService->deleteDatabase($id);
+
+        // Check if AJAX request
+        if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+            header('Content-Type: application/json');
+            echo json_encode($result);
+            exit;
+        }
 
         if ($result['success']) {
             $_SESSION['success'] = $result['message'];

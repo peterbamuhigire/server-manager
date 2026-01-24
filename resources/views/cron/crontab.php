@@ -162,8 +162,9 @@ ob_start();
 function copyToClipboard() {
     const content = document.getElementById('crontab-content').textContent;
     navigator.clipboard.writeText(content).then(() => {
-        alert('Crontab content copied to clipboard!');
+        SwalUtil.success('Crontab content copied to clipboard!');
     }).catch(err => {
+        SwalUtil.error('Failed to copy to clipboard');
         console.error('Failed to copy:', err);
     });
 }

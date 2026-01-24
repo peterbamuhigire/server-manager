@@ -64,30 +64,68 @@ ob_start();
 
 <script>
 function configureDomain(id) {
-    if (!confirm('Configure this domain?')) return;
-    fetch(`/domains/${id}/configure`, {
-        method: 'POST',
-        headers: {'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content}
-    }).then(r => r.json()).then(data => {
-        if (data.success) location.reload();
-        else alert(data.message);
+    SwalUtil.confirm({
+        title: 'Configure Domain?',
+        text: 'This will create the Apache virtual host configuration.',
+        icon: 'question',
+        confirmText: 'Yes, configure',
+        confirmColor: '#10b981'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            SwalUtil.loading('Configuring domain...');
+            fetch(`/domains/${id}/configure`, {
+                method: 'POST',
+                headers: {'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content}
+            }).then(r => r.json()).then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Configured!',
+                        text: 'Domain has been configured.',
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => location.reload());
+                } else {
+                    SwalUtil.error(data.message);
+                }
+            });
+        }
     });
 }
 
 function checkDNS(id) {
+    SwalUtil.loading('Checking DNS...');
     fetch(`/domains/${id}/check-dns`).then(r => r.json()).then(data => {
-        if (data.success) location.reload();
+        if (data.success) {
+            SwalUtil.success('DNS check completed');
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            SwalUtil.warning('DNS not fully configured yet');
+        }
     });
 }
 
 function deleteDomain(id) {
-    if (!confirm('Delete this domain?')) return;
-    fetch(`/domains/${id}`, {
-        method: 'DELETE',
-        headers: {'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content}
-    }).then(r => r.json()).then(data => {
-        if (data.success) location.href = '/domains';
-        else alert(data.message);
+    SwalUtil.confirmDelete('domain').then((result) => {
+        if (result.isConfirmed) {
+            SwalUtil.loading('Deleting domain...');
+            fetch(`/domains/${id}`, {
+                method: 'DELETE',
+                headers: {'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content}
+            }).then(r => r.json()).then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Deleted!',
+                        text: 'Domain has been deleted.',
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => location.href = '/domains');
+                } else {
+                    SwalUtil.error(data.message);
+                }
+            });
+        }
     });
 }
 </script>

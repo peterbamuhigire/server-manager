@@ -150,11 +150,11 @@ ob_start();
                                         <?php endif; ?>
                                     </div>
                                 </div>
-                                <form method="POST" action="/submodules/unlink" class="ml-4" onsubmit="return confirm('Unlink this submodule from <?= htmlspecialchars($app['name']) ?>?')">
+                                <form method="POST" action="/submodules/unlink" class="ml-4" id="unlink-form-<?= $app['id'] ?>">
                                     <input type="hidden" name="csrf_token" value="<?= $csrf_token ?>">
                                     <input type="hidden" name="submodule_id" value="<?= $submodule['id'] ?>">
                                     <input type="hidden" name="app_id" value="<?= $app['id'] ?>">
-                                    <button type="submit" class="text-red-600 hover:text-red-900 text-sm">
+                                    <button type="button" onclick="confirmUnlink(<?= $app['id'] ?>, '<?= htmlspecialchars($app['name']) ?>')" class="text-red-600 hover:text-red-900 text-sm">
                                         <i class="fas fa-unlink"></i>
                                     </button>
                                 </form>
@@ -299,10 +299,34 @@ function hideLinkModal() {
     document.getElementById('linkModal').classList.add('hidden');
 }
 
+function confirmUnlink(appId, appName) {
+    SwalUtil.confirm({
+        title: 'Unlink Submodule?',
+        text: `Remove this submodule from "${appName}"?`,
+        icon: 'warning',
+        confirmText: 'Yes, unlink',
+        confirmColor: '#dc2626'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            SwalUtil.loading('Unlinking...');
+            document.getElementById('unlink-form-' + appId).submit();
+        }
+    });
+}
+
 function confirmDelete() {
-    if (confirm('Are you sure you want to delete this submodule?\n\nThis will remove the local repository and all database records. Linked applications will need to be manually cleaned up.\n\nThis action cannot be undone.')) {
-        document.getElementById('deleteForm').submit();
-    }
+    SwalUtil.confirm({
+        title: 'Delete Submodule?',
+        text: 'This will remove the local repository and all database records. Linked applications will need to be manually cleaned up. This action cannot be undone!',
+        icon: 'error',
+        confirmText: 'Yes, delete permanently',
+        confirmColor: '#dc2626'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            SwalUtil.loading('Deleting submodule...');
+            document.getElementById('deleteForm').submit();
+        }
+    });
 }
 
 // Close modal when clicking outside

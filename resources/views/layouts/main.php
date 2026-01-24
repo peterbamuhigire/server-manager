@@ -20,6 +20,9 @@ $currentPath = current_url();
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <style>
         [x-cloak] { display: none !important; }
     </style>
@@ -163,15 +166,7 @@ $currentPath = current_url();
                 </div>
             </header>
 
-            <!-- Flash Messages -->
-            <?php if (has_flash()): ?>
-                <?php $flash = get_flash(); ?>
-                <div class="mx-8 mt-6">
-                    <div class="px-4 py-3 rounded-lg <?= $flash['type'] === 'success' ? 'bg-green-100 border border-green-400 text-green-700' : 'bg-red-100 border border-red-400 text-red-700' ?>" role="alert">
-                        <p><?= $flash['message'] ?></p>
-                    </div>
-                </div>
-            <?php endif; ?>
+            <!-- Flash Messages handled by SweetAlert2 -->
 
             <!-- Page Content -->
             <div class="p-8">
@@ -179,5 +174,174 @@ $currentPath = current_url();
             </div>
         </main>
     </div>
+
+    <!-- Global SweetAlert2 Utilities -->
+    <script>
+    const Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+            toast.addEventListener('mouseenter', Swal.stopTimer);
+            toast.addEventListener('mouseleave', Swal.resumeTimer);
+        }
+    });
+
+    const SwalUtil = {
+        // Success toast
+        success: (message, title = 'Success') => {
+            Toast.fire({ icon: 'success', title: message });
+        },
+
+        // Error - shows as detailed modal, not toast
+        error: (message, title = 'Error') => {
+            Swal.fire({
+                icon: 'error',
+                title: title,
+                text: message,
+                confirmButtonColor: '#dc2626',
+                confirmButtonText: 'OK'
+            });
+        },
+
+        // Warning toast
+        warning: (message, title = 'Warning') => {
+            Toast.fire({ icon: 'warning', title: message });
+        },
+
+        // Info toast
+        info: (message, title = 'Info') => {
+            Toast.fire({ icon: 'info', title: message });
+        },
+
+        // Detailed error with HTML support
+        errorDetail: (title, html) => {
+            Swal.fire({
+                icon: 'error',
+                title: title,
+                html: html,
+                confirmButtonColor: '#dc2626',
+                confirmButtonText: 'OK'
+            });
+        },
+
+        // Confirm dialog
+        confirm: (options = {}) => {
+            return Swal.fire({
+                title: options.title || 'Are you sure?',
+                text: options.text || '',
+                icon: options.icon || 'warning',
+                showCancelButton: true,
+                confirmButtonColor: options.confirmColor || '#3085d6',
+                cancelButtonColor: options.cancelColor || '#6b7280',
+                confirmButtonText: options.confirmText || 'Yes, proceed',
+                cancelButtonText: options.cancelText || 'Cancel',
+                reverseButtons: true
+            });
+        },
+
+        // Delete confirmation
+        confirmDelete: (itemName = 'this item') => {
+            return Swal.fire({
+                title: 'Delete ' + itemName + '?',
+                text: 'This action cannot be undone!',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Yes, delete it',
+                cancelButtonText: 'Cancel',
+                reverseButtons: true
+            });
+        },
+
+        // Loading indicator
+        loading: (message = 'Please wait...') => {
+            Swal.fire({
+                title: message,
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
+        },
+
+        // Close loading
+        closeLoading: () => {
+            Swal.close();
+        },
+
+        // Alert with callback
+        alert: (options = {}) => {
+            return Swal.fire({
+                title: options.title || 'Alert',
+                text: options.text || '',
+                icon: options.icon || 'info',
+                confirmButtonColor: '#3085d6',
+                confirmButtonText: options.confirmText || 'OK'
+            });
+        }
+    };
+
+    // Legacy showToast function for backward compatibility
+    function showToast(message, type = 'success') {
+        if (type === 'success') {
+            SwalUtil.success(message);
+        } else if (type === 'error') {
+            SwalUtil.error(message);
+        } else if (type === 'warning') {
+            SwalUtil.warning(message);
+        } else {
+            SwalUtil.info(message);
+        }
+    }
+    </script>
+
+    <?php
+    // Handle all types of session messages
+    $hasMessage = false;
+    $messageType = '';
+    $messageText = '';
+
+    // Check flash() messages first
+    if (has_flash()) {
+        $flash = get_flash();
+        $hasMessage = true;
+        $messageType = $flash['type'];
+        $messageText = $flash['message'];
+    }
+    // Check direct session error
+    elseif (isset($_SESSION['error'])) {
+        $hasMessage = true;
+        $messageType = 'error';
+        $messageText = $_SESSION['error'];
+        unset($_SESSION['error']);
+    }
+    // Check direct session success
+    elseif (isset($_SESSION['success'])) {
+        $hasMessage = true;
+        $messageType = 'success';
+        $messageText = $_SESSION['success'];
+        unset($_SESSION['success']);
+    }
+    ?>
+
+    <?php if ($hasMessage): ?>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        <?php if ($messageType === 'success'): ?>
+        SwalUtil.success('<?= addslashes($messageText) ?>');
+        <?php elseif ($messageType === 'error'): ?>
+        SwalUtil.error('<?= addslashes($messageText) ?>', 'Operation Failed');
+        <?php elseif ($messageType === 'warning'): ?>
+        SwalUtil.warning('<?= addslashes($messageText) ?>');
+        <?php else: ?>
+        SwalUtil.info('<?= addslashes($messageText) ?>');
+        <?php endif; ?>
+    });
+    </script>
+    <?php endif; ?>
 </body>
 </html>

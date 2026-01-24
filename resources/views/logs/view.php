@@ -83,10 +83,10 @@ ob_start();
             </select>
         </div>
         <?php if ($file['writable']): ?>
-            <form method="POST" action="/logs/clear" onsubmit="return confirm('Are you sure you want to clear this log file? This action cannot be undone.');" class="inline">
+            <form method="POST" action="/logs/clear" id="clear-log-form" class="inline">
                 <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
                 <input type="hidden" name="file" value="<?= base64_encode($file['path']) ?>">
-                <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm">
+                <button type="button" onclick="confirmClearLog()" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm">
                     Clear Log
                 </button>
             </form>
@@ -111,9 +111,25 @@ ob_start();
 function copyContent() {
     const content = document.getElementById('log-content').textContent;
     navigator.clipboard.writeText(content).then(() => {
-        alert('Log content copied to clipboard!');
+        SwalUtil.success('Log content copied to clipboard!');
     }).catch(err => {
+        SwalUtil.error('Failed to copy to clipboard');
         console.error('Failed to copy:', err);
+    });
+}
+
+function confirmClearLog() {
+    SwalUtil.confirm({
+        title: 'Clear Log File?',
+        text: 'This action cannot be undone. All log entries will be permanently deleted.',
+        icon: 'warning',
+        confirmText: 'Yes, clear it',
+        confirmColor: '#dc2626'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            SwalUtil.loading('Clearing log file...');
+            document.getElementById('clear-log-form').submit();
+        }
     });
 }
 </script>

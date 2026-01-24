@@ -133,52 +133,77 @@ ob_start();
 
 <script>
 function toggleUserStatus(userId, currentStatus) {
-    if (!confirm(`Are you sure you want to ${currentStatus === 'active' ? 'disable' : 'enable'} this user?`)) {
-        return;
-    }
+    const action = currentStatus === 'active' ? 'disable' : 'enable';
+    SwalUtil.confirm({
+        title: `${action.charAt(0).toUpperCase() + action.slice(1)} User?`,
+        text: `Are you sure you want to ${action} this user?`,
+        icon: 'question',
+        confirmText: `Yes, ${action}`,
+        confirmColor: currentStatus === 'active' ? '#dc2626' : '#10b981'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            SwalUtil.loading('Updating user...');
+            const formData = new FormData();
+            formData.append('id', userId);
+            formData.append('csrf_token', document.querySelector('meta[name="csrf-token"]').content);
 
-    const formData = new FormData();
-    formData.append('id', userId);
-    formData.append('csrf_token', document.querySelector('meta[name="csrf-token"]').content);
-
-    fetch('/users/toggle-status', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            location.reload();
-        } else {
-            alert(data.error || 'Failed to update user status');
+            fetch('/users/toggle-status', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Updated!',
+                        text: `User has been ${action}d.`,
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => location.reload());
+                } else {
+                    SwalUtil.error(data.error || 'Failed to update user status');
+                }
+            })
+            .catch(error => {
+                SwalUtil.error('An error occurred');
+                console.error(error);
+            });
         }
-    })
-    .catch(error => {
-        alert('An error occurred');
-        console.error(error);
     });
 }
 
 function deleteUser(userId) {
-    const formData = new FormData();
-    formData.append('id', userId);
-    formData.append('csrf_token', document.querySelector('meta[name="csrf-token"]').content);
+    SwalUtil.confirmDelete('user').then((result) => {
+        if (result.isConfirmed) {
+            SwalUtil.loading('Deleting user...');
+            const formData = new FormData();
+            formData.append('id', userId);
+            formData.append('csrf_token', document.querySelector('meta[name="csrf-token"]').content);
 
-    fetch('/users/delete', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            location.reload();
-        } else {
-            alert(data.error || 'Failed to delete user');
+            fetch('/users/delete', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Deleted!',
+                        text: 'User has been deleted.',
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => location.reload());
+                } else {
+                    SwalUtil.error(data.error || 'Failed to delete user');
+                }
+            })
+            .catch(error => {
+                SwalUtil.error('An error occurred');
+                console.error(error);
+            });
         }
-    })
-    .catch(error => {
-        alert('An error occurred');
-        console.error(error);
     });
 }
 </script>

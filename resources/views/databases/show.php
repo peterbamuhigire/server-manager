@@ -144,16 +144,13 @@ ob_start();
             <h3 class="text-lg leading-6 font-medium text-gray-900">
                 Backups
             </h3>
-            <form method="POST" action="/databases/<?= $database['id'] ?>/backup" class="inline">
-                <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
-                <button type="submit"
-                        class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                    <svg class="-ml-0.5 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
-                    </svg>
-                    Create Backup
-                </button>
-            </form>
+            <button type="button" onclick="createBackup(<?= $database['id'] ?>)"
+                    class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                <svg class="-ml-0.5 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+                </svg>
+                Create Backup
+            </button>
         </div>
         <div class="border-t border-gray-200">
             <?php if (empty($backups)): ?>
@@ -174,12 +171,12 @@ ob_start();
                                     </p>
                                 </div>
                                 <?php if ($backup['status'] === 'completed'): ?>
-                                    <form method="POST" action="/databases/restore" class="inline">
+                                    <form method="POST" action="/databases/restore" class="inline" id="restore-form-<?= $backup['id'] ?>">
                                         <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
                                         <input type="hidden" name="backup_id" value="<?= $backup['id'] ?>">
                                         <input type="hidden" name="database_id" value="<?= $database['id'] ?>">
-                                        <button type="submit"
-                                                onclick="return confirm('Are you sure you want to restore from this backup? This will overwrite the current database.')"
+                                        <button type="button"
+                                                onclick="confirmRestore(<?= $backup['id'] ?>)"
                                                 class="inline-flex items-center px-3 py-1 border border-gray-300 text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                                             Restore
                                         </button>
@@ -198,9 +195,10 @@ ob_start();
     </div>
 
     <div class="flex justify-end">
-        <form method="POST" action="/databases/<?= $database['id'] ?>/delete" onsubmit="return confirm('Are you sure you want to delete this database? This action cannot be undone and will permanently delete all data.');">
+        <form method="POST" action="/databases/<?= $database['id'] ?>/delete" id="delete-db-form">
             <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
-            <button type="submit"
+            <button type="button"
+                    onclick="confirmDeleteDatabase()"
                     class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
                 <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -210,6 +208,103 @@ ob_start();
         </form>
     </div>
 </div>
+
+<script>
+const csrfToken = '<?= $_SESSION['csrf_token'] ?>';
+
+function createBackup(databaseId) {
+    SwalUtil.confirm({
+        title: 'Create Backup?',
+        text: 'This will create a new backup of the database.',
+        icon: 'question',
+        confirmText: 'Yes, create backup',
+        confirmColor: '#4f46e5'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            Swal.fire({
+                title: 'Creating Backup...',
+                html: 'Please wait while the database is being backed up.<br><small>This may take a while for large databases.</small>',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
+
+            fetch(`/databases/${databaseId}/backup`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: `csrf_token=${encodeURIComponent(csrfToken)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Backup Created!',
+                        text: data.message,
+                        confirmButtonColor: '#4f46e5'
+                    }).then(() => location.reload());
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Backup Failed',
+                        html: `<pre style="text-align: left; font-size: 12px; max-height: 300px; overflow-y: auto; background: #f3f4f6; padding: 12px; border-radius: 6px; white-space: pre-wrap; word-wrap: break-word;">${escapeHtml(data.message)}</pre>`,
+                        confirmButtonColor: '#dc2626',
+                        width: '600px'
+                    });
+                }
+            })
+            .catch(error => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Request Failed',
+                    text: 'An error occurred while creating the backup: ' + error.message,
+                    confirmButtonColor: '#dc2626'
+                });
+            });
+        }
+    });
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function confirmRestore(backupId) {
+    SwalUtil.confirm({
+        title: 'Restore Database?',
+        text: 'This will overwrite the current database with the backup data. This action cannot be undone.',
+        icon: 'warning',
+        confirmText: 'Yes, restore',
+        confirmColor: '#f59e0b'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            SwalUtil.loading('Restoring database...');
+            document.getElementById('restore-form-' + backupId).submit();
+        }
+    });
+}
+
+function confirmDeleteDatabase() {
+    SwalUtil.confirm({
+        title: 'Delete Database?',
+        text: 'This action cannot be undone and will permanently delete all data!',
+        icon: 'error',
+        confirmText: 'Yes, delete permanently',
+        confirmColor: '#dc2626'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            SwalUtil.loading('Deleting database...');
+            document.getElementById('delete-db-form').submit();
+        }
+    });
+}
+</script>
 
 <?php
 $content = ob_get_clean();

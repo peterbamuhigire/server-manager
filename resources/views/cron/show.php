@@ -120,12 +120,22 @@ ob_start();
         <!-- Danger Zone -->
         <div class="bg-white rounded-lg shadow-md p-6 border-2 border-red-200">
             <h3 class="text-lg font-semibold text-red-900 mb-4">Danger Zone</h3>
-            <form method="POST" action="/cron/<?= $job['id'] ?>/destroy" onsubmit="return confirm('Are you sure you want to delete this cron job? This action cannot be undone.');">
+            <form method="POST" action="/cron/<?= $job['id'] ?>/destroy" id="delete-cron-form">
                 <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
-                <button type="submit" class="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+                <button type="button" onclick="confirmDeleteCron()" class="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
                     Delete Cron Job
                 </button>
             </form>
+            <script>
+            function confirmDeleteCron() {
+                SwalUtil.confirmDelete('cron job').then((result) => {
+                    if (result.isConfirmed) {
+                        SwalUtil.loading('Deleting cron job...');
+                        document.getElementById('delete-cron-form').submit();
+                    }
+                });
+            }
+            </script>
         </div>
     </div>
 </div>
