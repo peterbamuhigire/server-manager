@@ -106,6 +106,11 @@ $routes = [
         '/databases' => ['DatabaseController', 'index', ['auth']],
         '/databases/create' => ['DatabaseController', 'create', ['auth']],
         '/databases/{id}' => ['DatabaseController', 'show', ['auth']],
+
+        // WordPress installer
+        '/wordpress' => ['WordPressController', 'index', ['auth']],
+        '/wordpress/install' => ['WordPressController', 'install', ['auth']],
+        '/wordpress/success' => ['WordPressController', 'success', ['auth']],
     ],
     'POST' => [
         '/login' => ['AuthController', 'login', []],
@@ -143,6 +148,9 @@ $routes = [
         '/databases/{id}/backup' => ['DatabaseController', 'backup', ['auth', 'csrf']],
         '/databases/restore' => ['DatabaseController', 'restore', ['auth', 'csrf']],
         '/databases/{id}/delete' => ['DatabaseController', 'destroy', ['auth', 'csrf']],
+
+        // WordPress installer
+        '/wordpress' => ['WordPressController', 'store', ['auth', 'csrf']],
     ],
     'DELETE' => [
         '/apps/{id}' => ['AppController', 'destroy', ['auth', 'csrf']],
