@@ -5,16 +5,16 @@ A web-based PHP application for managing Ubuntu VPS servers with a beautiful das
 ![PHP Version](https://img.shields.io/badge/PHP-8.2+-blue)
 ![License](https://img.shields.io/badge/License-MIT-green)
 ![Status](https://img.shields.io/badge/Status-In%20Development-yellow)
-![Phase](https://img.shields.io/badge/Phase%2010-Complete%20%E2%9C%85-brightgreen)
-![Progress](https://img.shields.io/badge/Progress-77%25%20(10%2F13%20Phases)-orange)
+![Phase](https://img.shields.io/badge/Phase%2011-Complete%20%E2%9C%85-brightgreen)
+![Progress](https://img.shields.io/badge/Progress-85%25%20(11%2F13%20Phases)-orange)
 
 ---
 
 ## 📊 Project Status
 
-**Current Phase:** Phase 10 ✅ COMPLETE (Log Viewer)
+**Current Phase:** Phase 11 ✅ COMPLETE (Web Terminal)
 **Last Updated:** January 24, 2026
-**Overall Progress:** 77% (10 of 13 phases complete)
+**Overall Progress:** 85% (11 of 13 phases complete)
 
 ### What's Working Now
 - ✅ **User Authentication** - Secure login/logout with session management
@@ -34,9 +34,10 @@ A web-based PHP application for managing Ubuntu VPS servers with a beautiful das
 - ✅ **WordPress Installer** - One-click WordPress installation with auto-configuration
 - ✅ **Cron Jobs** - Scheduled task management with system crontab integration (Ubuntu/Debian)
 - ✅ **Log Viewer** - View and search system logs from Apache, PHP, MySQL, and application logs
+- ✅ **Web Terminal** - Execute shell commands from browser with command history and security controls
 
-### Coming Next (Phase 11+)
-- ⏳ Web terminal, Git submodules
+### Coming Next (Phase 12+)
+- ⏳ Git submodules, Final polish
 
 ---
 
@@ -371,6 +372,38 @@ chwezi-sm/
 - Pause/resume live updates
 - Auto-scrolls to newest entries
 
+### Web Terminal (Phase 11)
+
+**Execute Commands:**
+1. Navigate to **Web Terminal**
+2. Type command in the input field
+3. Press Enter to execute
+4. View output in the terminal window
+
+**Command History:**
+- Use **Up/Down arrow keys** to navigate through previous commands
+- View full history at **Terminal → Command History**
+- Search history for specific commands
+
+**Common Commands:**
+Quick access templates organized by category:
+- **System Information**: `uname -a`, `hostname`, `uptime`, `whoami`
+- **File Operations**: `ls -la`, `pwd`, `df -h`, `du -sh *`
+- **Process Management**: `ps aux`, `top`, `pgrep apache2`
+- **Service Management**: `systemctl status apache2/mysql`
+- **Network**: `ifconfig`, `netstat -tulpn`, `ping -c 4 google.com`
+- **Git**: `git status`, `git log`, `git branch`
+
+**Security Features:**
+- Dangerous commands require confirmation (rm -rf, shutdown, reboot, etc.)
+- Blocked commands cannot be executed (fork bombs, unauthorized downloads)
+- All commands logged with user, timestamp, and output
+- Command validation and sanitization
+
+**Special Commands:**
+- `clear` - Clear terminal output
+- `help` - Show help message
+
 ### Development Server
 
 For local development:
@@ -602,8 +635,20 @@ tail -f /var/log/apache2/error.log
 - [x] File size and modification date display
 - [x] Clear log file functionality
 
-**Phase 11-13: Coming Soon**
-- [ ] Web terminal
+**Phase 11: Web Terminal (✅ COMPLETE)**
+- [x] Secure command execution from web browser
+- [x] Command history tracking and navigation (up/down arrows)
+- [x] Terminal session logging (commands, output, exit codes)
+- [x] Dangerous command detection and confirmation
+- [x] Blocked command list for security
+- [x] Command validation and sanitization
+- [x] Common command templates by category
+- [x] Real-time command output display
+- [x] Command execution statistics
+- [x] Search command history
+- [x] Cross-platform support (Windows/Linux)
+
+**Phase 12-13: Coming Soon**
 - [ ] Git submodules
 - [ ] Final polish
 

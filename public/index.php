@@ -123,6 +123,10 @@ $routes = [
         '/logs/view' => ['LogController', 'view', ['auth']],
         '/logs/tail' => ['LogController', 'tail', ['auth']],
         '/logs/download' => ['LogController', 'download', ['auth']],
+
+        // Web Terminal
+        '/terminal' => ['TerminalController', 'index', ['auth']],
+        '/terminal/history' => ['TerminalController', 'history', ['auth']],
     ],
     'POST' => [
         '/login' => ['AuthController', 'login', []],
@@ -173,6 +177,10 @@ $routes = [
         // Log Viewer
         '/logs/search' => ['LogController', 'search', ['auth', 'csrf']],
         '/logs/clear' => ['LogController', 'clear', ['auth', 'csrf']],
+
+        // Web Terminal
+        '/terminal/execute' => ['TerminalController', 'execute', ['auth', 'csrf']],
+        '/terminal/clear' => ['TerminalController', 'clear', ['auth', 'csrf']],
     ],
     'DELETE' => [
         '/apps/{id}' => ['AppController', 'destroy', ['auth', 'csrf']],

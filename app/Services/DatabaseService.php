@@ -60,7 +60,7 @@ class DatabaseService
                 $this->dbConfig['username'],
                 $this->dbConfig['password']
             );
-            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERR_EXCEPTION);
+            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
             $sql = "CREATE DATABASE IF NOT EXISTS `{$databaseName}`
                     CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci";
@@ -277,7 +277,7 @@ class DatabaseService
                 $this->dbConfig['username'],
                 $this->dbConfig['password']
             );
-            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERR_EXCEPTION);
+            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
             $sql = "DROP DATABASE IF EXISTS `{$database['database_name']}`";
             $pdo->exec($sql);
@@ -333,7 +333,7 @@ class DatabaseService
                 $this->dbConfig['username'],
                 $this->dbConfig['password']
             );
-            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERR_EXCEPTION);
+            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
             $sql = "SELECT SUM(data_length + index_length) as size
                     FROM information_schema.TABLES

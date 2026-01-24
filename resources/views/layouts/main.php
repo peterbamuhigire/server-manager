@@ -116,6 +116,14 @@ $currentPath = current_url();
                     Log Viewer
                     <span class="ml-auto bg-green-600 px-2 py-1 text-xs rounded-full">New</span>
                 </a>
+
+                <a href="/terminal" class="flex items-center px-6 py-3 <?= strpos($currentPath, '/terminal') === 0 ? 'bg-blue-600 border-r-4 border-blue-400' : 'hover:bg-gray-800' ?>">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                    Web Terminal
+                    <span class="ml-auto bg-green-600 px-2 py-1 text-xs rounded-full">New</span>
+                </a>
             </nav>
 
             <!-- User Menu -->
