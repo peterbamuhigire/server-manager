@@ -5,8 +5,8 @@ A web-based PHP application for managing Ubuntu VPS servers with a beautiful das
 ![PHP Version](https://img.shields.io/badge/PHP-8.2+-blue)
 ![License](https://img.shields.io/badge/License-MIT-green)
 ![Status](https://img.shields.io/badge/Status-In%20Development-yellow)
-![Phase](https://img.shields.io/badge/Phase%2011-Complete%20%E2%9C%85-brightgreen)
-![Progress](https://img.shields.io/badge/Progress-85%25%20(11%2F13%20Phases)-orange)
+![Phase](https://img.shields.io/badge/Phase%2012-Complete%20%E2%9C%85-brightgreen)
+![Progress](https://img.shields.io/badge/Progress-92%25%20(12%2F13%20Phases)-orange)
 
 ---
 

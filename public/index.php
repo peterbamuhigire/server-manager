@@ -127,6 +127,11 @@ $routes = [
         // Web Terminal
         '/terminal' => ['TerminalController', 'index', ['auth']],
         '/terminal/history' => ['TerminalController', 'history', ['auth']],
+
+        // Git Submodules
+        '/submodules' => ['SubmoduleController', 'index', ['auth']],
+        '/submodules/create' => ['SubmoduleController', 'create', ['auth']],
+        '/submodules/{id}' => ['SubmoduleController', 'show', ['auth']],
     ],
     'POST' => [
         '/login' => ['AuthController', 'login', []],
@@ -181,6 +186,13 @@ $routes = [
         // Web Terminal
         '/terminal/execute' => ['TerminalController', 'execute', ['auth', 'csrf']],
         '/terminal/clear' => ['TerminalController', 'clear', ['auth', 'csrf']],
+
+        // Git Submodules
+        '/submodules/store' => ['SubmoduleController', 'store', ['auth', 'csrf']],
+        '/submodules/{id}/update' => ['SubmoduleController', 'update', ['auth', 'csrf']],
+        '/submodules/link' => ['SubmoduleController', 'link', ['auth', 'csrf']],
+        '/submodules/unlink' => ['SubmoduleController', 'unlink', ['auth', 'csrf']],
+        '/submodules/{id}/delete' => ['SubmoduleController', 'destroy', ['auth', 'csrf']],
     ],
     'DELETE' => [
         '/apps/{id}' => ['AppController', 'destroy', ['auth', 'csrf']],
