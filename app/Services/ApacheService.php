@@ -13,8 +13,14 @@ class ApacheService
 
     public function __construct()
     {
-        // Windows WAMP vhost path
-        $this->vhostPath = 'C:/wamp64/bin/apache/apache2.4.59/conf/extra';
+        // Set vhost path based on OS
+        if (stripos(PHP_OS, 'WIN') === 0) {
+            // Windows WAMP vhost path
+            $this->vhostPath = 'C:/wamp64/bin/apache/apache2.4.59/conf/extra';
+        } else {
+            // Linux (Ubuntu/Debian) Apache sites-available path
+            $this->vhostPath = config('paths.apache_sites_available', '/etc/apache2/sites-available');
+        }
         $this->templatePath = realpath(__DIR__ . '/../Templates') ?: __DIR__ . '/../Templates';
         $this->activityLog = new ActivityLogService();
     }
@@ -33,8 +39,10 @@ class ApacheService
                 throw new Exception('Failed to write vhost file');
             }
 
-            // Update httpd-vhosts.conf to include this file
+            // Update httpd-vhosts.conf to include this file (Windows)
+            // or enable site (Linux)
             $this->addVhostInclude($app->subdomain);
+            $this->enableSite($app->subdomain);
 
             // Reload Apache
             $this->reloadApache();
@@ -111,8 +119,9 @@ class ApacheService
                 unlink($vhostFile);
             }
 
-            // Remove from httpd-vhosts.conf
+            // Remove from httpd-vhosts.conf (Windows) or disable site (Linux)
             $this->removeVhostInclude($subdomain);
+            $this->disableSite($subdomain);
 
             // Reload Apache
             $this->reloadApache();
@@ -237,17 +246,54 @@ VHOST;
      */
     private function reloadApache(): void
     {
-        // On Windows WAMP, we need to restart Apache
-        // This assumes the Apache service name is wampapache64
-        $command = 'net stop wampapache64 && net start wampapache64 2>&1';
+        if (stripos(PHP_OS, 'WIN') === 0) {
+            // On Windows WAMP, we need to restart Apache
+            $command = 'net stop wampapache64 && net start wampapache64 2>&1';
+        } else {
+            // On Linux (Ubuntu/Debian), use systemctl
+            $command = 'sudo systemctl reload apache2 2>&1';
+        }
 
         exec($command, $output, $returnCode);
 
-        // Note: This may fail if not running as administrator
-        // In production, you might want to handle this differently
+        // Note: This may fail if not running with proper permissions
         if ($returnCode !== 0) {
             // Log but don't throw exception - manual restart may be needed
             error_log('Apache reload failed: ' . implode("\n", $output));
+        }
+    }
+
+    /**
+     * Enable site on Linux
+     */
+    private function enableSite(string $subdomain): void
+    {
+        if (stripos(PHP_OS, 'WIN') === 0) {
+            return; // Not needed on Windows
+        }
+
+        $command = sprintf('sudo a2ensite vhost-%s.conf 2>&1', escapeshellarg($subdomain));
+        exec($command, $output, $returnCode);
+
+        if ($returnCode !== 0) {
+            error_log('Failed to enable site: ' . implode("\n", $output));
+        }
+    }
+
+    /**
+     * Disable site on Linux
+     */
+    private function disableSite(string $subdomain): void
+    {
+        if (stripos(PHP_OS, 'WIN') === 0) {
+            return; // Not needed on Windows
+        }
+
+        $command = sprintf('sudo a2dissite vhost-%s.conf 2>&1', escapeshellarg($subdomain));
+        exec($command, $output, $returnCode);
+
+        if ($returnCode !== 0) {
+            error_log('Failed to disable site: ' . implode("\n", $output));
         }
     }
 
@@ -256,7 +302,13 @@ VHOST;
      */
     public function testConfiguration(): array
     {
-        $command = 'httpd -t 2>&1';
+        if (stripos(PHP_OS, 'WIN') === 0) {
+            $command = 'httpd -t 2>&1';
+        } else {
+            // Linux (Ubuntu/Debian)
+            $command = 'sudo apache2ctl -t 2>&1';
+        }
+
         exec($command, $output, $returnCode);
 
         return [

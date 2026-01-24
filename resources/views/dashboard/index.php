@@ -178,7 +178,7 @@ ob_start();
         <div class="space-y-3">
             <div class="flex justify-between">
                 <span class="text-gray-600">Application Version</span>
-                <span class="font-medium text-gray-800">1.0.0 (Phase 3)</span>
+                <span class="font-medium text-gray-800">1.0.0</span>
             </div>
             <div class="flex justify-between">
                 <span class="text-gray-600">Environment</span>
@@ -267,35 +267,38 @@ ob_start();
                 </svg>
                 View Profile
             </a>
-            <div class="block w-full bg-gray-200 text-gray-500 py-3 px-4 rounded-lg font-medium text-center cursor-not-allowed">
-                <span class="text-sm">More features coming in Phase 3+</span>
-            </div>
+            <a href="/apps" class="block w-full bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-lg font-medium text-center transition">
+                <svg class="inline-block w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                </svg>
+                Manage Apps
+            </a>
         </div>
     </div>
 </div>
 
-<!-- Roadmap -->
-<div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
-    <h3 class="text-lg font-bold text-blue-900 mb-2">Phase 3: Git Integration Complete</h3>
-    <p class="text-blue-700 mb-4">
-        SSH key management and GitHub integration are now available! Generate SSH keys and test your GitHub connection.
+<!-- Feature Overview -->
+<div class="bg-green-50 border border-green-200 rounded-lg p-6">
+    <h3 class="text-lg font-bold text-green-900 mb-2">All Features Available</h3>
+    <p class="text-green-700 mb-4">
+        Chwezi Server Manager is fully operational with all features ready to use.
     </p>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="bg-white rounded p-3 border border-blue-200">
-            <p class="text-sm font-medium text-gray-800">Coming in Phase 4</p>
-            <p class="text-xs text-gray-600 mt-1">Application Deployment</p>
+        <div class="bg-white rounded p-3 border border-green-200">
+            <p class="text-sm font-medium text-green-800">Apps & Git</p>
+            <p class="text-xs text-gray-600 mt-1">Deploy from repositories</p>
         </div>
-        <div class="bg-white rounded p-3 border border-blue-200">
-            <p class="text-sm font-medium text-gray-800">Coming in Phase 5</p>
-            <p class="text-xs text-gray-600 mt-1">Domain Management</p>
+        <div class="bg-white rounded p-3 border border-green-200">
+            <p class="text-sm font-medium text-green-800">Domains & SSL</p>
+            <p class="text-xs text-gray-600 mt-1">Manage domains and certificates</p>
         </div>
-        <div class="bg-white rounded p-3 border border-blue-200">
-            <p class="text-sm font-medium text-gray-800">Coming in Phase 6</p>
-            <p class="text-xs text-gray-600 mt-1">SSL Certificates</p>
+        <div class="bg-white rounded p-3 border border-green-200">
+            <p class="text-sm font-medium text-green-800">Databases</p>
+            <p class="text-xs text-gray-600 mt-1">MySQL & backups</p>
         </div>
-        <div class="bg-white rounded p-3 border border-blue-200">
-            <p class="text-sm font-medium text-gray-800">Coming in Phase 7-13</p>
-            <p class="text-xs text-gray-600 mt-1">Databases, WordPress & More</p>
+        <div class="bg-white rounded p-3 border border-green-200">
+            <p class="text-sm font-medium text-green-800">Cron & Terminal</p>
+            <p class="text-xs text-gray-600 mt-1">Scheduled tasks & web shell</p>
         </div>
     </div>
 </div>

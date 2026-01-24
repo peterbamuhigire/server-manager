@@ -20,8 +20,14 @@ class DomainService
 
     public function __construct()
     {
-        // Windows WAMP vhost path
-        $this->vhostPath = 'C:/wamp64/bin/apache/apache2.4.59/conf/extra';
+        // Set vhost path based on OS
+        if (stripos(PHP_OS, 'WIN') === 0) {
+            // Windows WAMP vhost path
+            $this->vhostPath = 'C:/wamp64/bin/apache/apache2.4.59/conf/extra';
+        } else {
+            // Linux (Ubuntu/Debian) Apache sites-available path
+            $this->vhostPath = config('paths.apache_sites_available', '/etc/apache2/sites-available');
+        }
         $this->templatePath = realpath(__DIR__ . '/../Templates') ?: __DIR__ . '/../Templates';
         $this->activityLog = new ActivityLogService();
     }
@@ -92,7 +98,8 @@ class DomainService
             // Add include to httpd-vhosts.conf
             $this->addVhostInclude($domain['domain_name']);
 
-            // Reload Apache
+            // Enable site (Linux only) and reload Apache
+            $this->enableSite($domain['domain_name']);
             $this->reloadApache();
 
             return [
@@ -221,8 +228,9 @@ class DomainService
                 unlink($vhostFile);
             }
 
-            // Remove from httpd-vhosts.conf
+            // Remove from httpd-vhosts.conf (Windows) or disable site (Linux)
             $this->removeVhostInclude($domainName);
+            $this->disableSite($domainName);
 
             // Reload Apache
             $this->reloadApache();
@@ -304,11 +312,54 @@ class DomainService
      */
     private function reloadApache()
     {
-        $command = 'net stop wampapache64 && net start wampapache64 2>&1';
+        if (stripos(PHP_OS, 'WIN') === 0) {
+            // Windows WAMP
+            $command = 'net stop wampapache64 && net start wampapache64 2>&1';
+        } else {
+            // Linux (Ubuntu/Debian)
+            $command = 'sudo systemctl reload apache2 2>&1';
+        }
+
         exec($command, $output, $returnCode);
 
         if ($returnCode !== 0) {
             error_log('Apache reload failed: ' . implode("\n", $output));
+        }
+    }
+
+    /**
+     * Enable site on Linux
+     */
+    private function enableSite($domainName)
+    {
+        if (stripos(PHP_OS, 'WIN') === 0) {
+            return; // Not needed on Windows
+        }
+
+        $safeName = str_replace('.', '_', $domainName);
+        $command = sprintf('sudo a2ensite vhost-%s.conf 2>&1', escapeshellarg($safeName));
+        exec($command, $output, $returnCode);
+
+        if ($returnCode !== 0) {
+            error_log('Failed to enable site: ' . implode("\n", $output));
+        }
+    }
+
+    /**
+     * Disable site on Linux
+     */
+    private function disableSite($domainName)
+    {
+        if (stripos(PHP_OS, 'WIN') === 0) {
+            return; // Not needed on Windows
+        }
+
+        $safeName = str_replace('.', '_', $domainName);
+        $command = sprintf('sudo a2dissite vhost-%s.conf 2>&1', escapeshellarg($safeName));
+        exec($command, $output, $returnCode);
+
+        if ($returnCode !== 0) {
+            error_log('Failed to disable site: ' . implode("\n", $output));
         }
     }
 }
