@@ -80,13 +80,27 @@ else
     print_info "Cloning repository..."
     cd /var/www/html
 
-    # Try cloning from GitHub (adjust URL if using different remote)
-    git clone https://github.com/chwezi/server-manager.git server-manager
+    # Clone using SSH
+    print_info "Using SSH authentication (git@github.com:peterbamuhigire/server-manager.git)"
+    git clone git@github.com:peterbamuhigire/server-manager.git server-manager
 
     if [ $? -eq 0 ]; then
         print_success "Repository cloned successfully"
     else
         print_error "Failed to clone repository"
+        echo ""
+        print_error "SSH authentication failed. Please ensure:"
+        print_error "1. SSH key is generated on this server"
+        print_error "2. Public key is added to your GitHub account"
+        echo ""
+        print_info "To generate SSH key, run:"
+        echo "   ssh-keygen -t ed25519 -C \"your_email@example.com\""
+        echo ""
+        print_info "To display public key, run:"
+        echo "   cat ~/.ssh/id_ed25519.pub"
+        echo ""
+        print_info "Add the public key to: https://github.com/settings/keys"
+        echo ""
         exit 1
     fi
 fi
