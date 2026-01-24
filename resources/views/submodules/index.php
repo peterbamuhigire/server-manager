@@ -2,6 +2,7 @@
 /**
  * Git Submodules - List View
  */
+ob_start();
 ?>
 
 <!-- Header -->
@@ -168,3 +169,8 @@
         </div>
     <?php endif; ?>
 </div>
+
+<?php
+$content = ob_get_clean();
+require __DIR__ . '/../layouts/main.php';
+?>

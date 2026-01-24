@@ -12,9 +12,9 @@ A web-based PHP application for managing Ubuntu VPS servers with a beautiful das
 
 ## 📊 Project Status
 
-**Current Phase:** Phase 11 ✅ COMPLETE (Web Terminal)
+**Current Phase:** Phase 12 ✅ COMPLETE (Git Submodules)
 **Last Updated:** January 24, 2026
-**Overall Progress:** 85% (11 of 13 phases complete)
+**Overall Progress:** 92% (12 of 13 phases complete)
 
 ### What's Working Now
 - ✅ **User Authentication** - Secure login/logout with session management
@@ -35,9 +35,10 @@ A web-based PHP application for managing Ubuntu VPS servers with a beautiful das
 - ✅ **Cron Jobs** - Scheduled task management with system crontab integration (Ubuntu/Debian)
 - ✅ **Log Viewer** - View and search system logs from Apache, PHP, MySQL, and application logs
 - ✅ **Web Terminal** - Execute shell commands from browser with command history and security controls
+- ✅ **Git Submodules** - Manage shared code repositories across multiple applications with auto-sync
 
-### Coming Next (Phase 12+)
-- ⏳ Git submodules, Final polish
+### Coming Next (Phase 13)
+- ⏳ Final polish
 
 ---
 
@@ -404,6 +405,50 @@ Quick access templates organized by category:
 - `clear` - Clear terminal output
 - `help` - Show help message
 
+### Git Submodules (Phase 12)
+
+**Add a Submodule:**
+1. Navigate to **Git Submodules** → **Add Submodule**
+2. Enter:
+   - Submodule Name (lowercase, hyphens, underscores only)
+   - Repository URL (HTTPS or SSH)
+   - Branch (default: main)
+   - Description (optional)
+3. Click **Add Submodule**
+4. Repository is cloned to central location (/var/www/submodules)
+
+**Link Submodule to Application:**
+1. Navigate to **Git Submodules** → Click on a submodule
+2. Click **Link to App** button
+3. Select:
+   - Application to link to
+   - Relative path within app (e.g., "shared/components")
+   - Auto-sync on deployment (optional)
+4. Click **Link**
+5. On Linux: Symlink created; On Windows: Directory copied
+
+**Update Submodule:**
+1. Navigate to **Git Submodules** → Click on a submodule
+2. Click **Pull Latest** to fetch latest changes from repository
+3. If auto-sync is enabled, linked applications are automatically updated
+
+**Manage Links:**
+- **View Linked Apps:** See all applications using a submodule
+- **Unlink:** Remove submodule link from an application
+- **Auto-sync:** Toggle automatic updates on deployment
+
+**Remove Submodule:**
+1. Navigate to **Git Submodules** → Click on a submodule
+2. Ensure all applications are unlinked first
+3. Click **Delete Submodule**
+4. Confirm deletion (removes local repository and database record)
+
+**Use Cases:**
+- Share common UI components across multiple applications
+- Distribute shared libraries and utilities
+- Maintain consistent code across projects
+- Centralize frequently used scripts and helpers
+
 ### Development Server
 
 For local development:
@@ -648,8 +693,19 @@ tail -f /var/log/apache2/error.log
 - [x] Search command history
 - [x] Cross-platform support (Windows/Linux)
 
-**Phase 12-13: Coming Soon**
-- [ ] Git submodules
+**Phase 12: Git Submodules (✅ COMPLETE)**
+- [x] Git submodule creation and cloning
+- [x] Submodule repository management (pull/update)
+- [x] Link submodules to multiple applications
+- [x] Auto-sync on deployment
+- [x] Symlink support (Linux) and directory copy (Windows)
+- [x] Submodule status tracking and monitoring
+- [x] Central submodule repository storage
+- [x] Commit hash tracking
+- [x] Unlink and remove submodules
+- [x] Cross-platform support (Windows/Linux)
+
+**Phase 13: Coming Soon**
 - [ ] Final polish
 
 ### Version 1.1 (Planned)

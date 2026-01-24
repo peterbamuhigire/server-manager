@@ -4,6 +4,7 @@
  */
 $formData = $_SESSION['form_data'] ?? [];
 unset($_SESSION['form_data']);
+ob_start();
 ?>
 
 <!-- Header -->

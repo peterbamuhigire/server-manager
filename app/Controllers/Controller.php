@@ -34,6 +34,16 @@ class Controller
     }
 
     /**
+     * Render a view (alias for view())
+     * @param string $view
+     * @param array $data
+     */
+    protected function render(string $view, array $data = []): void
+    {
+        view($view, $data);
+    }
+
+    /**
      * Redirect to URL
      * @param string $url
      * @param int $code
@@ -167,5 +177,24 @@ class Controller
             http_response_code(403);
             die('Forbidden: Insufficient permissions');
         }
+    }
+
+    /**
+     * Generate CSRF token
+     * @return string
+     */
+    protected function generateCsrfToken(): string
+    {
+        return CsrfMiddleware::generate();
+    }
+
+    /**
+     * Validate CSRF token
+     * @param string $token
+     * @return bool
+     */
+    protected function validateCsrfToken(string $token): bool
+    {
+        return CsrfMiddleware::validate($token);
     }
 }

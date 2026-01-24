@@ -1,6 +1,8 @@
 <?php
 
+require_once __DIR__ . '/Controller.php';
 require_once __DIR__ . '/../Services/GitSubmoduleService.php';
+require_once __DIR__ . '/../Models/GitSubmodule.php';
 require_once __DIR__ . '/../Models/App.php';
 
 /**
@@ -32,12 +34,12 @@ class SubmoduleController extends Controller
         $stats = $submoduleModel->getStats();
 
         $data = [
-            'title' => 'Git Submodules',
+            'pageTitle' => 'Git Submodules',
             'submodules' => $submodules,
             'stats' => $stats
         ];
 
-        $this->render('submodules/index', $data);
+        $this->view('submodules/index', $data);
     }
 
     /**
@@ -46,7 +48,7 @@ class SubmoduleController extends Controller
     public function create()
     {
         $data = [
-            'title' => 'Add Git Submodule',
+            'pageTitle' => 'Add Git Submodule',
             'csrf_token' => $this->generateCsrfToken()
         ];
 
@@ -64,7 +66,7 @@ class SubmoduleController extends Controller
         }
 
         if (!$this->validateCsrfToken($_POST['csrf_token'] ?? '')) {
-            $_SESSION['flash_error'] = 'Invalid CSRF token';
+            $_SESSION['error'] = 'Invalid CSRF token';
             $this->redirect('/submodules/create');
             return;
         }
@@ -76,7 +78,7 @@ class SubmoduleController extends Controller
 
         // Validate input
         if (empty($name) || empty($repositoryUrl)) {
-            $_SESSION['flash_error'] = 'Name and repository URL are required';
+            $_SESSION['error'] = 'Name and repository URL are required';
             $_SESSION['form_data'] = $_POST;
             $this->redirect('/submodules/create');
             return;
@@ -92,10 +94,10 @@ class SubmoduleController extends Controller
         );
 
         if ($result['success']) {
-            $_SESSION['flash_success'] = $result['message'];
+            $_SESSION['success'] = $result['message'];
             $this->redirect('/submodules/' . $result['submodule_id']);
         } else {
-            $_SESSION['flash_error'] = $result['message'];
+            $_SESSION['error'] = $result['message'];
             $_SESSION['form_data'] = $_POST;
             $this->redirect('/submodules/create');
         }
@@ -109,7 +111,7 @@ class SubmoduleController extends Controller
         $result = $this->submoduleService->getStatus($id);
 
         if (!$result['success']) {
-            $_SESSION['flash_error'] = $result['message'];
+            $_SESSION['error'] = $result['message'];
             $this->redirect('/submodules');
             return;
         }
@@ -118,7 +120,7 @@ class SubmoduleController extends Controller
         $apps = $this->appModel->getAll();
 
         $data = [
-            'title' => 'Submodule: ' . $result['submodule']['name'],
+            'pageTitle' => 'Submodule: ' . $result['submodule']['name'],
             'submodule' => $result['submodule'],
             'linked_apps' => $result['linked_apps'],
             'apps' => $apps,
@@ -139,7 +141,7 @@ class SubmoduleController extends Controller
         }
 
         if (!$this->validateCsrfToken($_POST['csrf_token'] ?? '')) {
-            $_SESSION['flash_error'] = 'Invalid CSRF token';
+            $_SESSION['error'] = 'Invalid CSRF token';
             $this->redirect('/submodules/' . $id);
             return;
         }
@@ -147,9 +149,9 @@ class SubmoduleController extends Controller
         $result = $this->submoduleService->updateSubmodule($id);
 
         if ($result['success']) {
-            $_SESSION['flash_success'] = $result['message'];
+            $_SESSION['success'] = $result['message'];
         } else {
-            $_SESSION['flash_error'] = $result['message'];
+            $_SESSION['error'] = $result['message'];
         }
 
         $this->redirect('/submodules/' . $id);
@@ -166,7 +168,7 @@ class SubmoduleController extends Controller
         }
 
         if (!$this->validateCsrfToken($_POST['csrf_token'] ?? '')) {
-            $_SESSION['flash_error'] = 'Invalid CSRF token';
+            $_SESSION['error'] = 'Invalid CSRF token';
             $this->redirect('/submodules');
             return;
         }
@@ -177,7 +179,7 @@ class SubmoduleController extends Controller
         $autoSync = isset($_POST['auto_sync']) ? true : false;
 
         if (empty($submoduleId) || empty($appId) || empty($relativePath)) {
-            $_SESSION['flash_error'] = 'All fields are required';
+            $_SESSION['error'] = 'All fields are required';
             $this->redirect('/submodules/' . $submoduleId);
             return;
         }
@@ -191,12 +193,12 @@ class SubmoduleController extends Controller
             $result = $this->submoduleService->linkSubmoduleToApp($submoduleId, $appId, $relativePath);
 
             if ($result['success']) {
-                $_SESSION['flash_success'] = 'Submodule linked to application successfully';
+                $_SESSION['success'] = 'Submodule linked to application successfully';
             } else {
-                $_SESSION['flash_warning'] = 'Database link created but physical link failed: ' . $result['message'];
+                $_SESSION['error'] = 'Database link created but physical link failed: ' . $result['message'];
             }
         } else {
-            $_SESSION['flash_error'] = 'Failed to link submodule to application';
+            $_SESSION['error'] = 'Failed to link submodule to application';
         }
 
         $this->redirect('/submodules/' . $submoduleId);
@@ -213,7 +215,7 @@ class SubmoduleController extends Controller
         }
 
         if (!$this->validateCsrfToken($_POST['csrf_token'] ?? '')) {
-            $_SESSION['flash_error'] = 'Invalid CSRF token';
+            $_SESSION['error'] = 'Invalid CSRF token';
             $this->redirect('/submodules');
             return;
         }
@@ -222,7 +224,7 @@ class SubmoduleController extends Controller
         $appId = (int)($_POST['app_id'] ?? 0);
 
         if (empty($submoduleId) || empty($appId)) {
-            $_SESSION['flash_error'] = 'Invalid request';
+            $_SESSION['error'] = 'Invalid request';
             $this->redirect('/submodules/' . $submoduleId);
             return;
         }
@@ -231,9 +233,9 @@ class SubmoduleController extends Controller
         $result = $submoduleModel->unlinkFromApp($submoduleId, $appId);
 
         if ($result) {
-            $_SESSION['flash_success'] = 'Submodule unlinked from application successfully';
+            $_SESSION['success'] = 'Submodule unlinked from application successfully';
         } else {
-            $_SESSION['flash_error'] = 'Failed to unlink submodule';
+            $_SESSION['error'] = 'Failed to unlink submodule';
         }
 
         $this->redirect('/submodules/' . $submoduleId);
@@ -250,7 +252,7 @@ class SubmoduleController extends Controller
         }
 
         if (!$this->validateCsrfToken($_POST['csrf_token'] ?? '')) {
-            $_SESSION['flash_error'] = 'Invalid CSRF token';
+            $_SESSION['error'] = 'Invalid CSRF token';
             $this->redirect('/submodules/' . $id);
             return;
         }
@@ -258,10 +260,10 @@ class SubmoduleController extends Controller
         $result = $this->submoduleService->removeSubmodule($id);
 
         if ($result['success']) {
-            $_SESSION['flash_success'] = $result['message'];
+            $_SESSION['success'] = $result['message'];
             $this->redirect('/submodules');
         } else {
-            $_SESSION['flash_error'] = $result['message'];
+            $_SESSION['error'] = $result['message'];
             $this->redirect('/submodules/' . $id);
         }
     }
