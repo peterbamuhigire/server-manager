@@ -111,6 +111,18 @@ $routes = [
         '/wordpress' => ['WordPressController', 'index', ['auth']],
         '/wordpress/install' => ['WordPressController', 'install', ['auth']],
         '/wordpress/success' => ['WordPressController', 'success', ['auth']],
+
+        // Cron Jobs
+        '/cron' => ['CronController', 'index', ['auth']],
+        '/cron/create' => ['CronController', 'create', ['auth']],
+        '/cron/crontab' => ['CronController', 'viewCrontab', ['auth']],
+        '/cron/{id}' => ['CronController', 'show', ['auth']],
+
+        // Log Viewer
+        '/logs' => ['LogController', 'index', ['auth']],
+        '/logs/view' => ['LogController', 'view', ['auth']],
+        '/logs/tail' => ['LogController', 'tail', ['auth']],
+        '/logs/download' => ['LogController', 'download', ['auth']],
     ],
     'POST' => [
         '/login' => ['AuthController', 'login', []],
@@ -151,6 +163,16 @@ $routes = [
 
         // WordPress installer
         '/wordpress' => ['WordPressController', 'store', ['auth', 'csrf']],
+
+        // Cron Jobs
+        '/cron/store' => ['CronController', 'store', ['auth', 'csrf']],
+        '/cron/{id}/execute' => ['CronController', 'execute', ['auth', 'csrf']],
+        '/cron/{id}/toggle' => ['CronController', 'toggle', ['auth', 'csrf']],
+        '/cron/{id}/destroy' => ['CronController', 'destroy', ['auth', 'csrf']],
+
+        // Log Viewer
+        '/logs/search' => ['LogController', 'search', ['auth', 'csrf']],
+        '/logs/clear' => ['LogController', 'clear', ['auth', 'csrf']],
     ],
     'DELETE' => [
         '/apps/{id}' => ['AppController', 'destroy', ['auth', 'csrf']],

@@ -5,16 +5,16 @@ A web-based PHP application for managing Ubuntu VPS servers with a beautiful das
 ![PHP Version](https://img.shields.io/badge/PHP-8.2+-blue)
 ![License](https://img.shields.io/badge/License-MIT-green)
 ![Status](https://img.shields.io/badge/Status-In%20Development-yellow)
-![Phase](https://img.shields.io/badge/Phase%208-Complete%20%E2%9C%85-brightgreen)
-![Progress](https://img.shields.io/badge/Progress-69%25%20(8%2F13%20Phases)-orange)
+![Phase](https://img.shields.io/badge/Phase%2010-Complete%20%E2%9C%85-brightgreen)
+![Progress](https://img.shields.io/badge/Progress-77%25%20(10%2F13%20Phases)-orange)
 
 ---
 
 ## 📊 Project Status
 
-**Current Phase:** Phase 8 ✅ COMPLETE (WordPress Installer)
+**Current Phase:** Phase 10 ✅ COMPLETE (Log Viewer)
 **Last Updated:** January 24, 2026
-**Overall Progress:** 69% (8 of 13 phases complete)
+**Overall Progress:** 77% (10 of 13 phases complete)
 
 ### What's Working Now
 - ✅ **User Authentication** - Secure login/logout with session management
@@ -32,9 +32,11 @@ A web-based PHP application for managing Ubuntu VPS servers with a beautiful das
 - ✅ **SSL Management** - Let's Encrypt certificates, self-signed certs for dev, auto-renewal
 - ✅ **Database Management** - MySQL database creation, backup/restore, user management
 - ✅ **WordPress Installer** - One-click WordPress installation with auto-configuration
+- ✅ **Cron Jobs** - Scheduled task management with system crontab integration (Ubuntu/Debian)
+- ✅ **Log Viewer** - View and search system logs from Apache, PHP, MySQL, and application logs
 
-### Coming Next (Phase 9+)
-- ⏳ Cron jobs & log viewer
+### Coming Next (Phase 11+)
+- ⏳ Web terminal, Git submodules
 
 ---
 
@@ -319,6 +321,56 @@ chwezi-sm/
 - **Active:** App successfully deployed and accessible
 - **Error:** Deployment failed (check error message for details)
 
+### Cron Jobs (Phase 9)
+
+**Create a Cron Job:**
+1. Navigate to **Cron Jobs** → **Create Cron Job**
+2. Enter:
+   - Job Name (e.g., "Daily Database Backup")
+   - Description (optional)
+   - Command (full path, e.g., "/usr/bin/php /var/www/script.php")
+   - Schedule (use common templates or custom cron expression)
+3. Click **Create Cron Job**
+4. Job is automatically added to system crontab (www-data user on Ubuntu/Debian)
+
+**Manage Cron Jobs:**
+- **Run Now:** Execute a cron job manually
+- **Enable/Disable:** Toggle job active status
+- **View Execution Logs:** See history of all job runs with output/errors
+- **View System Crontab:** See the actual crontab file managed by the system
+
+**Cron Schedule Format:**
+- `* * * * *` = Every minute
+- `0 * * * *` = Every hour
+- `0 0 * * *` = Daily at midnight
+- `0 2 * * 0` = Weekly on Sunday at 2 AM
+- `0 0 1 * *` = Monthly on the 1st at midnight
+
+### Log Viewer (Phase 10)
+
+**View System Logs:**
+1. Navigate to **Log Viewer**
+2. Browse logs by category:
+   - **Apache/Nginx:** Web server logs
+   - **PHP:** PHP error logs
+   - **MySQL:** Database logs
+   - **Application:** App-specific logs
+3. Click **View** to read log content
+4. Click **Tail** for real-time log monitoring
+5. Click **Download** to save log file
+
+**Search Logs:**
+1. On any log view page, use the search form
+2. Enter search query
+3. Optionally enable case-sensitive search
+4. View highlighted matches
+
+**Live Tail:**
+- Auto-refreshes every 2 seconds (configurable)
+- Shows last 50 lines (configurable: 25-200)
+- Pause/resume live updates
+- Auto-scrolls to newest entries
+
 ### Development Server
 
 For local development:
@@ -528,11 +580,32 @@ tail -f /var/log/apache2/error.log
 - [x] WP-CLI support for advanced installations
 - [x] Installation success page with all credentials
 
-**Phase 9-13: Coming Soon**
-- [ ] Cron jobs
-- [ ] Log viewer
+**Phase 9: Cron Jobs (✅ COMPLETE)**
+- [x] Cron job creation and management
+- [x] Cron schedule validation (5-part cron expression)
+- [x] System crontab synchronization (Ubuntu/Debian www-data user)
+- [x] Manual job execution
+- [x] Enable/disable cron jobs
+- [x] Execution history and logging
+- [x] Common schedule templates (every minute, hourly, daily, weekly, monthly)
+- [x] Next run time calculation
+- [x] System crontab viewer
+
+**Phase 10: Log Viewer (✅ COMPLETE)**
+- [x] Log file discovery from common Ubuntu/Debian locations
+- [x] Apache, Nginx, PHP, MySQL, and application log support
+- [x] Real-time log tailing with auto-refresh
+- [x] Log file search with case-sensitive option
+- [x] Log download functionality
+- [x] Windows development environment support
+- [x] Log categorization and filtering
+- [x] File size and modification date display
+- [x] Clear log file functionality
+
+**Phase 11-13: Coming Soon**
 - [ ] Web terminal
 - [ ] Git submodules
+- [ ] Final polish
 
 ### Version 1.1 (Planned)
 - [ ] Two-factor authentication
