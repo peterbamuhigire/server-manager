@@ -101,6 +101,11 @@ $routes = [
         '/ssl' => ['SSLController', 'index', ['auth']],
         '/ssl/create' => ['SSLController', 'create', ['auth']],
         '/ssl/{id}' => ['SSLController', 'show', ['auth']],
+
+        // Database management
+        '/databases' => ['DatabaseController', 'index', ['auth']],
+        '/databases/create' => ['DatabaseController', 'create', ['auth']],
+        '/databases/{id}' => ['DatabaseController', 'show', ['auth']],
     ],
     'POST' => [
         '/login' => ['AuthController', 'login', []],
@@ -132,11 +137,18 @@ $routes = [
         '/ssl' => ['SSLController', 'store', ['auth', 'csrf']],
         '/ssl/{id}/renew' => ['SSLController', 'renew', ['auth', 'csrf']],
         '/ssl/{id}/delete' => ['SSLController', 'destroy', ['auth', 'csrf']],
+
+        // Database management
+        '/databases' => ['DatabaseController', 'store', ['auth', 'csrf']],
+        '/databases/{id}/backup' => ['DatabaseController', 'backup', ['auth', 'csrf']],
+        '/databases/restore' => ['DatabaseController', 'restore', ['auth', 'csrf']],
+        '/databases/{id}/delete' => ['DatabaseController', 'destroy', ['auth', 'csrf']],
     ],
     'DELETE' => [
         '/apps/{id}' => ['AppController', 'destroy', ['auth', 'csrf']],
         '/domains/{id}' => ['DomainController', 'destroy', ['auth', 'csrf']],
         '/ssl/{id}' => ['SSLController', 'destroy', ['auth', 'csrf']],
+        '/databases/{id}' => ['DatabaseController', 'destroy', ['auth', 'csrf']],
     ],
 ];
 

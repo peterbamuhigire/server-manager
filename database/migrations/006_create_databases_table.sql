@@ -4,9 +4,9 @@
 -- Description: Creates table for managing MySQL databases
 -- ============================================================================
 
--- Table: databases
+-- Table: mysql_databases
 -- Purpose: Track MySQL databases created through the application
-CREATE TABLE IF NOT EXISTS `databases` (
+CREATE TABLE IF NOT EXISTS `mysql_databases` (
     `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `database_name` VARCHAR(64) NOT NULL UNIQUE COMMENT 'MySQL database name',
     `database_user` VARCHAR(32) NULL COMMENT 'Database username',
@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS `databases` (
 
     FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
     FOREIGN KEY (`app_id`) REFERENCES `apps`(`id`) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='MySQL databases';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='MySQL database tracking';
 
 -- Table: database_backups
 -- Purpose: Track database backup history
@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS `database_backups` (
     INDEX `idx_status` (`status`),
     INDEX `idx_created_at` (`created_at`),
 
-    FOREIGN KEY (`database_id`) REFERENCES `databases`(`id`) ON DELETE CASCADE
+    FOREIGN KEY (`database_id`) REFERENCES `mysql_databases`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Database backup history';
 
 -- ============================================================================

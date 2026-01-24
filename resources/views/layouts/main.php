@@ -84,11 +84,12 @@ $currentPath = current_url();
                     <span class="ml-auto bg-green-600 px-2 py-1 text-xs rounded-full">New</span>
                 </a>
 
-                <a href="#" class="flex items-center px-6 py-3 text-gray-500 cursor-not-allowed">
+                <a href="/databases" class="flex items-center px-6 py-3 <?= strpos($currentPath, '/databases') === 0 ? 'bg-blue-600 border-r-4 border-blue-400' : 'hover:bg-gray-800' ?>">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"></path>
                     </svg>
                     Databases
+                    <span class="ml-auto bg-green-600 px-2 py-1 text-xs rounded-full">New</span>
                 </a>
             </nav>
 
