@@ -90,6 +90,12 @@ $routes = [
         '/apps' => ['AppController', 'index', ['auth']],
         '/apps/create' => ['AppController', 'create', ['auth']],
         '/apps/{id}' => ['AppController', 'show', ['auth']],
+
+        // Domain management
+        '/domains' => ['DomainController', 'index', ['auth']],
+        '/domains/create' => ['DomainController', 'create', ['auth']],
+        '/domains/{id}' => ['DomainController', 'show', ['auth']],
+        '/domains/{id}/check-dns' => ['DomainController', 'checkDns', ['auth']],
     ],
     'POST' => [
         '/login' => ['AuthController', 'login', []],
@@ -112,9 +118,14 @@ $routes = [
         '/apps/{id}/deploy' => ['AppController', 'deploy', ['auth', 'csrf']],
         '/apps/{id}/redeploy' => ['AppController', 'redeploy', ['auth', 'csrf']],
         '/apps/{id}' => ['AppController', 'update', ['auth', 'csrf']],
+
+        // Domain management
+        '/domains' => ['DomainController', 'store', ['auth', 'csrf']],
+        '/domains/{id}/configure' => ['DomainController', 'configure', ['auth', 'csrf']],
     ],
     'DELETE' => [
         '/apps/{id}' => ['AppController', 'destroy', ['auth', 'csrf']],
+        '/domains/{id}' => ['DomainController', 'destroy', ['auth', 'csrf']],
     ],
 ];
 

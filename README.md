@@ -5,16 +5,16 @@ A web-based PHP application for managing Ubuntu VPS servers with a beautiful das
 ![PHP Version](https://img.shields.io/badge/PHP-8.2+-blue)
 ![License](https://img.shields.io/badge/License-MIT-green)
 ![Status](https://img.shields.io/badge/Status-In%20Development-yellow)
-![Phase](https://img.shields.io/badge/Phase%204-Complete%20%E2%9C%85-brightgreen)
-![Progress](https://img.shields.io/badge/Progress-38%25%20(4%2F13%20Phases)-orange)
+![Phase](https://img.shields.io/badge/Phase%205-Complete%20%E2%9C%85-brightgreen)
+![Progress](https://img.shields.io/badge/Progress-46%25%20(5%2F13%20Phases)-orange)
 
 ---
 
 ## 📊 Project Status
 
-**Current Phase:** Phase 4 ✅ COMPLETE (Application Management)
+**Current Phase:** Phase 5 ✅ COMPLETE (Domain Management)
 **Last Updated:** January 24, 2026
-**Overall Progress:** 38% (4 of 13 phases complete)
+**Overall Progress:** 46% (5 of 13 phases complete)
 
 ### What's Working Now
 - ✅ **User Authentication** - Secure login/logout with session management
@@ -28,9 +28,10 @@ A web-based PHP application for managing Ubuntu VPS servers with a beautiful das
 - ✅ **Git Integration** - SSH key management and GitHub connection testing
 - ✅ **Installation** - Automated setup scripts for dev/demo/prod
 - ✅ **Application Management** - Deploy apps from Git, Apache vhost configuration, app status tracking
+- ✅ **Domain Management** - Custom domains, DNS checking, Apache vhost configuration
 
-### Coming Next (Phase 5+)
-- ⏳ Domain & SSL management
+### Coming Next (Phase 6+)
+- ⏳ SSL management
 - ⏳ Database management
 - ⏳ WordPress installer
 - ⏳ Cron jobs & log viewer
@@ -494,8 +495,13 @@ tail -f /var/log/apache2/error.log
 - [x] Composer dependency installation
 - [x] Custom document root support
 
-**Phase 5-13: Coming Soon**
-- [ ] Domain management
+**Phase 5: Domain Management (✅ COMPLETE)**
+- [x] Custom domain configuration
+- [x] DNS status checking
+- [x] Apache vhost management for domains
+- [x] Link domains to applications
+
+**Phase 6-13: Coming Soon**
 - [ ] SSL management
 - [ ] Database management
 - [ ] WordPress installer

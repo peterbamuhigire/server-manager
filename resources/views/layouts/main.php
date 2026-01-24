@@ -68,11 +68,12 @@ $currentPath = current_url();
                     <span class="ml-auto bg-green-600 px-2 py-1 text-xs rounded-full">New</span>
                 </a>
 
-                <a href="#" class="flex items-center px-6 py-3 text-gray-500 cursor-not-allowed">
+                <a href="/domains" class="flex items-center px-6 py-3 <?= strpos($currentPath, '/domains') === 0 ? 'bg-blue-600 border-r-4 border-blue-400' : 'hover:bg-gray-800' ?>">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path>
                     </svg>
                     Domains
+                    <span class="ml-auto bg-green-600 px-2 py-1 text-xs rounded-full">New</span>
                 </a>
 
                 <a href="#" class="flex items-center px-6 py-3 text-gray-500 cursor-not-allowed">
