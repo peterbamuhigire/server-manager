@@ -31,6 +31,10 @@ if (isset($discovered['databases']['databases'])) {
     }
 }
 
+// Count registered/unregistered SSL certs
+$registeredSSL = count(array_filter($discovered['ssl_certificates'], fn($c) => $c['registered'] ?? false));
+$unregisteredSSL = count($discovered['ssl_certificates']) - $registeredSSL;
+
 ob_start();
 ?>
 
@@ -96,15 +100,21 @@ ob_start();
     </div>
 
     <div class="bg-white rounded-lg shadow p-4">
-        <div class="flex items-center">
-            <div class="bg-purple-100 rounded-lg p-3">
-                <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-                </svg>
+        <div class="flex items-center justify-between">
+            <div class="flex items-center">
+                <div class="bg-purple-100 rounded-lg p-3">
+                    <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm text-gray-500">SSL Certs</p>
+                    <p class="text-2xl font-bold text-gray-800"><?= count($discovered['ssl_certificates']) ?></p>
+                </div>
             </div>
-            <div class="ml-4">
-                <p class="text-sm text-gray-500">SSL Certs</p>
-                <p class="text-2xl font-bold text-gray-800"><?= count($discovered['ssl_certificates']) ?></p>
+            <div class="text-right text-xs">
+                <div class="text-green-600"><?= $registeredSSL ?> registered</div>
+                <div class="text-yellow-600"><?= $unregisteredSSL ?> unregistered</div>
             </div>
         </div>
     </div>
@@ -131,13 +141,41 @@ ob_start();
 </div>
 
 <!-- Action Buttons -->
-<div class="flex justify-between items-center mb-6">
-    <button type="button" onclick="location.reload()" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium transition flex items-center">
-        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-        </svg>
-        Rescan Server
-    </button>
+<div class="flex flex-wrap justify-between items-center mb-6 gap-4">
+    <div class="flex flex-wrap gap-2">
+        <button type="button" onclick="location.reload()" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium transition flex items-center">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+            </svg>
+            Rescan
+        </button>
+        <button type="button" onclick="cleanupOrphaned()" class="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-medium transition flex items-center">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+            </svg>
+            Cleanup DB
+        </button>
+    </div>
+
+    <!-- Apache Controls -->
+    <div class="flex items-center gap-2">
+        <span id="apacheStatus" class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-600">
+            <span class="w-2 h-2 bg-gray-400 rounded-full mr-2 animate-pulse"></span> Checking...
+        </span>
+        <button type="button" onclick="reloadApache()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-medium transition flex items-center text-sm">
+            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+            </svg>
+            Reload
+        </button>
+        <button type="button" onclick="restartApache()" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg font-medium transition flex items-center text-sm">
+            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+            </svg>
+            Restart Apache
+        </button>
+    </div>
+
     <div class="flex gap-2">
         <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-green-100 text-green-800">
             <span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span> Registered

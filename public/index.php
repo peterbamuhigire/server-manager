@@ -141,6 +141,7 @@ $routes = [
         '/discovery/ssl' => ['DiscoveryController', 'ssl', ['auth', 'root']],
         '/discovery/databases' => ['DiscoveryController', 'databases', ['auth', 'root']],
         '/discovery/view-config' => ['DiscoveryController', 'viewConfig', ['auth', 'root']],
+        '/discovery/apache-status' => ['DiscoveryController', 'apacheStatus', ['auth', 'root']],
     ],
     'POST' => [
         '/login' => ['AuthController', 'login', []],
@@ -211,6 +212,11 @@ $routes = [
         '/discovery/unregister-domain' => ['DiscoveryController', 'unregisterDomain', ['auth', 'root', 'csrf']],
         '/discovery/register-database' => ['DiscoveryController', 'registerDatabase', ['auth', 'root', 'csrf']],
         '/discovery/unregister-database' => ['DiscoveryController', 'unregisterDatabase', ['auth', 'root', 'csrf']],
+        '/discovery/register-ssl' => ['DiscoveryController', 'registerSSL', ['auth', 'root', 'csrf']],
+        '/discovery/unregister-ssl' => ['DiscoveryController', 'unregisterSSL', ['auth', 'root', 'csrf']],
+        '/discovery/cleanup' => ['DiscoveryController', 'cleanup', ['auth', 'root', 'csrf']],
+        '/discovery/restart-apache' => ['DiscoveryController', 'restartApache', ['auth', 'root', 'csrf']],
+        '/discovery/reload-apache' => ['DiscoveryController', 'reloadApache', ['auth', 'root', 'csrf']],
     ],
     'DELETE' => [
         '/apps/{id}' => ['AppController', 'destroy', ['auth', 'csrf']],

@@ -372,4 +372,134 @@ class DiscoveryController extends Controller
             json_error($result['message']);
         }
     }
+
+    /**
+     * Register an SSL certificate
+     */
+    public function registerSSL(): void
+    {
+        $this->requireAuth();
+        $this->requireRoot();
+        $this->verifyCsrf();
+
+        $user = $this->user();
+
+        $certData = [
+            'domain' => $_POST['domain'] ?? '',
+            'provider' => $_POST['provider'] ?? 'unknown',
+            'cert_file' => $_POST['cert_file'] ?? null,
+            'key_file' => $_POST['key_file'] ?? null,
+            'chain_file' => $_POST['chain_file'] ?? null,
+            'issued_at' => $_POST['issued_at'] ?? null,
+            'expires_at' => $_POST['expires_at'] ?? null
+        ];
+
+        if (empty($certData['domain'])) {
+            json_error('Domain name is required');
+            return;
+        }
+
+        $result = $this->discoveryService->registerSSLCertificate($certData, $user['id']);
+
+        if ($result['success']) {
+            json_success($result['message'], ['id' => $result['id'] ?? null]);
+        } else {
+            json_error($result['message']);
+        }
+    }
+
+    /**
+     * Unregister an SSL certificate
+     */
+    public function unregisterSSL(): void
+    {
+        $this->requireAuth();
+        $this->requireRoot();
+        $this->verifyCsrf();
+
+        $id = $_POST['id'] ?? '';
+
+        if (empty($id)) {
+            json_error('SSL certificate ID is required');
+            return;
+        }
+
+        $result = $this->discoveryService->unregisterSSLCertificate($id);
+
+        if ($result['success']) {
+            json_success($result['message']);
+        } else {
+            json_error($result['message']);
+        }
+    }
+
+    /**
+     * Clean up orphaned database entries
+     */
+    public function cleanup(): void
+    {
+        $this->requireAuth();
+        $this->requireRoot();
+        $this->verifyCsrf();
+
+        $result = $this->discoveryService->cleanupOrphanedEntries();
+
+        $totalRemoved = $result['apps']['removed'] + $result['domains']['removed'] +
+                       $result['databases']['removed'] + $result['ssl']['removed'];
+
+        if ($totalRemoved === 0) {
+            json_success('No orphaned entries found. Database is clean.', $result);
+        } else {
+            json_success("Cleaned up {$totalRemoved} orphaned entries", $result);
+        }
+    }
+
+    /**
+     * Restart Apache service
+     */
+    public function restartApache(): void
+    {
+        $this->requireAuth();
+        $this->requireRoot();
+        $this->verifyCsrf();
+
+        $result = $this->discoveryService->restartApache();
+
+        if ($result['success']) {
+            json_success($result['message']);
+        } else {
+            json_error($result['message']);
+        }
+    }
+
+    /**
+     * Reload Apache service (graceful)
+     */
+    public function reloadApache(): void
+    {
+        $this->requireAuth();
+        $this->requireRoot();
+        $this->verifyCsrf();
+
+        $result = $this->discoveryService->reloadApache();
+
+        if ($result['success']) {
+            json_success($result['message']);
+        } else {
+            json_error($result['message']);
+        }
+    }
+
+    /**
+     * Get Apache status
+     */
+    public function apacheStatus(): void
+    {
+        $this->requireAuth();
+        $this->requireRoot();
+
+        $status = $this->discoveryService->getApacheStatus();
+
+        json_success('Apache status retrieved', $status);
+    }
 }

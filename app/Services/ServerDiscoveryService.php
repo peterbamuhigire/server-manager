@@ -78,7 +78,40 @@ class ServerDiscoveryService
             }
         }
 
+        // Check registration status for SSL certificates
+        $registeredSSL = $this->getRegisteredSSLCertificates();
+        foreach ($discovered['ssl_certificates'] as &$cert) {
+            $domain = $cert['domain'] ?? '';
+            $cert['registered'] = isset($registeredSSL[$domain]);
+            $cert['db_id'] = $registeredSSL[$domain]['id'] ?? null;
+            $cert['db_record'] = $registeredSSL[$domain] ?? null;
+        }
+
         return $discovered;
+    }
+
+    /**
+     * Get registered SSL certificates indexed by domain
+     */
+    private function getRegisteredSSLCertificates()
+    {
+        try {
+            require_once __DIR__ . '/../Models/SslCertificate.php';
+            $sslModel = new SslCertificate();
+            $certs = $sslModel->all();
+
+            $indexed = [];
+            foreach ($certs as $cert) {
+                // Index by domain name stored in the certificate
+                $domainName = $cert['domain_name'] ?? $cert['common_name'] ?? '';
+                if ($domainName) {
+                    $indexed[$domainName] = $cert;
+                }
+            }
+            return $indexed;
+        } catch (Exception $e) {
+            return [];
+        }
     }
 
     /**
@@ -1004,5 +1037,340 @@ class ServerDiscoveryService
         // Based on document root matching, database naming patterns, etc.
 
         return $linked;
+    }
+
+    /**
+     * Register an SSL certificate in the database
+     */
+    public function registerSSLCertificate($certData, $userId)
+    {
+        try {
+            require_once __DIR__ . '/../Models/SslCertificate.php';
+            $sslModel = new SslCertificate();
+
+            // Check if already exists
+            $existing = $sslModel->where('domain_name', $certData['domain']);
+            if ($existing) {
+                return [
+                    'success' => false,
+                    'message' => 'SSL certificate for this domain is already registered'
+                ];
+            }
+
+            // Create the certificate record
+            $id = $sslModel->create([
+                'domain_id' => null, // Can be linked to domain later
+                'domain_name' => $certData['domain'],
+                'provider' => $certData['provider'] ?? 'unknown',
+                'certificate_path' => $certData['cert_file'] ?? null,
+                'private_key_path' => $certData['key_file'] ?? null,
+                'chain_path' => $certData['chain_file'] ?? null,
+                'issued_at' => $certData['issued_at'] ?? null,
+                'expires_at' => $certData['expires_at'] ?? null,
+                'auto_renew' => ($certData['provider'] === 'letsencrypt') ? 1 : 0,
+                'status' => 'active',
+                'user_id' => $userId
+            ]);
+
+            if ($this->activityLog) {
+                $this->activityLog->log(
+                    'ssl_registered',
+                    'SSL certificate registered: ' . $certData['domain'],
+                    ['ssl_id' => $id]
+                );
+            }
+
+            return [
+                'success' => true,
+                'message' => 'SSL certificate registered successfully',
+                'id' => $id
+            ];
+        } catch (Exception $e) {
+            return [
+                'success' => false,
+                'message' => 'Failed to register SSL certificate: ' . $e->getMessage()
+            ];
+        }
+    }
+
+    /**
+     * Unregister an SSL certificate from the database
+     */
+    public function unregisterSSLCertificate($id)
+    {
+        try {
+            require_once __DIR__ . '/../Models/SslCertificate.php';
+            $sslModel = new SslCertificate();
+
+            $cert = $sslModel->find($id);
+            if (!$cert) {
+                return [
+                    'success' => false,
+                    'message' => 'SSL certificate not found'
+                ];
+            }
+
+            $sslModel->delete($id);
+
+            if ($this->activityLog) {
+                $this->activityLog->log(
+                    'ssl_unregistered',
+                    'SSL certificate unregistered: ' . ($cert['domain_name'] ?? 'ID: ' . $id),
+                    ['ssl_id' => $id]
+                );
+            }
+
+            return [
+                'success' => true,
+                'message' => 'SSL certificate unregistered successfully (files remain intact)'
+            ];
+        } catch (Exception $e) {
+            return [
+                'success' => false,
+                'message' => 'Failed to unregister SSL certificate: ' . $e->getMessage()
+            ];
+        }
+    }
+
+    /**
+     * Clean up orphaned database entries (entities that no longer exist on server)
+     */
+    public function cleanupOrphanedEntries()
+    {
+        $results = [
+            'apps' => ['removed' => 0, 'items' => []],
+            'domains' => ['removed' => 0, 'items' => []],
+            'databases' => ['removed' => 0, 'items' => []],
+            'ssl' => ['removed' => 0, 'items' => []]
+        ];
+
+        // Get current server state
+        $discovered = $this->discoverAll();
+
+        // Build lookup arrays for what exists on server
+        $existingDirs = [];
+        foreach ($discovered['directories'] as $dir) {
+            $existingDirs[$dir['name']] = true;
+        }
+
+        $existingDomains = [];
+        foreach ($discovered['domains'] as $domain) {
+            if (!empty($domain['server_name'])) {
+                $existingDomains[$domain['server_name']] = true;
+            }
+        }
+
+        $existingDatabases = [];
+        if (isset($discovered['databases']['databases'])) {
+            foreach ($discovered['databases']['databases'] as $db) {
+                $existingDatabases[$db['name']] = true;
+            }
+        }
+
+        $existingSSL = [];
+        foreach ($discovered['ssl_certificates'] as $cert) {
+            $existingSSL[$cert['domain']] = true;
+        }
+
+        // Clean up orphaned apps
+        try {
+            require_once __DIR__ . '/../Models/App.php';
+            $appModel = new App();
+            $apps = $appModel->all();
+
+            foreach ($apps as $app) {
+                // Check if the app directory exists
+                $appPath = $this->webRoot . '/' . $app['subdomain'];
+                if (!is_dir($appPath) && !isset($existingDirs[$app['subdomain']])) {
+                    $appModel->delete($app['id']);
+                    $results['apps']['removed']++;
+                    $results['apps']['items'][] = $app['name'] . ' (' . $app['subdomain'] . ')';
+                }
+            }
+        } catch (Exception $e) {
+            $results['apps']['error'] = $e->getMessage();
+        }
+
+        // Clean up orphaned domains
+        try {
+            require_once __DIR__ . '/../Models/Domain.php';
+            $domainModel = new Domain();
+            $domains = $domainModel->all();
+
+            foreach ($domains as $domain) {
+                // Check if domain config exists
+                if (!isset($existingDomains[$domain['domain_name']])) {
+                    $domainModel->delete($domain['id']);
+                    $results['domains']['removed']++;
+                    $results['domains']['items'][] = $domain['domain_name'];
+                }
+            }
+        } catch (Exception $e) {
+            $results['domains']['error'] = $e->getMessage();
+        }
+
+        // Clean up orphaned databases
+        try {
+            require_once __DIR__ . '/../Models/MysqlDatabase.php';
+            $dbModel = new MysqlDatabase();
+            $databases = $dbModel->all();
+
+            foreach ($databases as $db) {
+                if (!isset($existingDatabases[$db['database_name']])) {
+                    $dbModel->delete($db['id']);
+                    $results['databases']['removed']++;
+                    $results['databases']['items'][] = $db['database_name'];
+                }
+            }
+        } catch (Exception $e) {
+            $results['databases']['error'] = $e->getMessage();
+        }
+
+        // Clean up orphaned SSL certificates
+        try {
+            require_once __DIR__ . '/../Models/SslCertificate.php';
+            $sslModel = new SslCertificate();
+            $certs = $sslModel->all();
+
+            foreach ($certs as $cert) {
+                $domainName = $cert['domain_name'] ?? '';
+                $certPath = $cert['certificate_path'] ?? '';
+
+                // Check if cert file exists or domain is in discovered list
+                $certExists = !empty($certPath) && file_exists($certPath);
+                $inDiscovered = isset($existingSSL[$domainName]);
+
+                if (!$certExists && !$inDiscovered) {
+                    $sslModel->delete($cert['id']);
+                    $results['ssl']['removed']++;
+                    $results['ssl']['items'][] = $domainName ?: 'ID: ' . $cert['id'];
+                }
+            }
+        } catch (Exception $e) {
+            $results['ssl']['error'] = $e->getMessage();
+        }
+
+        if ($this->activityLog) {
+            $totalRemoved = $results['apps']['removed'] + $results['domains']['removed'] +
+                           $results['databases']['removed'] + $results['ssl']['removed'];
+            if ($totalRemoved > 0) {
+                $this->activityLog->log(
+                    'cleanup_orphaned',
+                    "Cleaned up {$totalRemoved} orphaned entries",
+                    $results
+                );
+            }
+        }
+
+        return $results;
+    }
+
+    /**
+     * Restart Apache service
+     */
+    public function restartApache()
+    {
+        try {
+            // Test Apache configuration first
+            exec('sudo apache2ctl configtest 2>&1', $testOutput, $testCode);
+
+            if ($testCode !== 0) {
+                return [
+                    'success' => false,
+                    'message' => "Apache configuration test failed:\n" . implode("\n", $testOutput)
+                ];
+            }
+
+            // Restart Apache
+            exec('sudo systemctl restart apache2 2>&1', $output, $returnCode);
+
+            if ($returnCode !== 0) {
+                return [
+                    'success' => false,
+                    'message' => "Failed to restart Apache:\n" . implode("\n", $output)
+                ];
+            }
+
+            if ($this->activityLog) {
+                $this->activityLog->log('apache_restart', 'Apache service restarted');
+            }
+
+            return [
+                'success' => true,
+                'message' => 'Apache restarted successfully'
+            ];
+        } catch (Exception $e) {
+            return [
+                'success' => false,
+                'message' => 'Failed to restart Apache: ' . $e->getMessage()
+            ];
+        }
+    }
+
+    /**
+     * Reload Apache service (graceful)
+     */
+    public function reloadApache()
+    {
+        try {
+            // Test Apache configuration first
+            exec('sudo apache2ctl configtest 2>&1', $testOutput, $testCode);
+
+            if ($testCode !== 0) {
+                return [
+                    'success' => false,
+                    'message' => "Apache configuration test failed:\n" . implode("\n", $testOutput)
+                ];
+            }
+
+            // Reload Apache (graceful)
+            exec('sudo systemctl reload apache2 2>&1', $output, $returnCode);
+
+            if ($returnCode !== 0) {
+                return [
+                    'success' => false,
+                    'message' => "Failed to reload Apache:\n" . implode("\n", $output)
+                ];
+            }
+
+            if ($this->activityLog) {
+                $this->activityLog->log('apache_reload', 'Apache service reloaded');
+            }
+
+            return [
+                'success' => true,
+                'message' => 'Apache reloaded successfully'
+            ];
+        } catch (Exception $e) {
+            return [
+                'success' => false,
+                'message' => 'Failed to reload Apache: ' . $e->getMessage()
+            ];
+        }
+    }
+
+    /**
+     * Get Apache service status
+     */
+    public function getApacheStatus()
+    {
+        try {
+            exec('systemctl is-active apache2 2>&1', $statusOutput, $statusCode);
+            $isRunning = ($statusCode === 0 && trim($statusOutput[0] ?? '') === 'active');
+
+            exec('systemctl status apache2 2>&1', $detailOutput, $detailCode);
+
+            return [
+                'running' => $isRunning,
+                'status' => $isRunning ? 'active' : 'inactive',
+                'details' => implode("\n", $detailOutput)
+            ];
+        } catch (Exception $e) {
+            return [
+                'running' => false,
+                'status' => 'unknown',
+                'error' => $e->getMessage()
+            ];
+        }
     }
 }
