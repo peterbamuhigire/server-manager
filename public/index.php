@@ -85,6 +85,11 @@ $routes = [
 
         // Git integration
         '/git' => ['GitController', 'index', ['auth']],
+
+        // Application management
+        '/apps' => ['AppController', 'index', ['auth']],
+        '/apps/create' => ['AppController', 'create', ['auth']],
+        '/apps/{id}' => ['AppController', 'show', ['auth']],
     ],
     'POST' => [
         '/login' => ['AuthController', 'login', []],
@@ -101,6 +106,15 @@ $routes = [
         '/git/delete-key' => ['GitController', 'deleteKey', ['auth', 'csrf']],
         '/git/test-connection' => ['GitController', 'testConnection', ['auth', 'csrf']],
         '/git/config' => ['GitController', 'updateConfig', ['auth', 'csrf']],
+
+        // Application management
+        '/apps' => ['AppController', 'store', ['auth', 'csrf']],
+        '/apps/{id}/deploy' => ['AppController', 'deploy', ['auth', 'csrf']],
+        '/apps/{id}/redeploy' => ['AppController', 'redeploy', ['auth', 'csrf']],
+        '/apps/{id}' => ['AppController', 'update', ['auth', 'csrf']],
+    ],
+    'DELETE' => [
+        '/apps/{id}' => ['AppController', 'destroy', ['auth', 'csrf']],
     ],
 ];
 
@@ -205,8 +219,13 @@ try {
         throw new Exception("Action not found: {$controllerName}@{$action}");
     }
 
-    // Dispatch
-    call_user_func([$controller, $action]);
+    // Dispatch (pass route parameters if available)
+    $params = $handler[3] ?? [];
+    if (!empty($params)) {
+        call_user_func_array([$controller, $action], $params);
+    } else {
+        call_user_func([$controller, $action]);
+    }
 
 } catch (Exception $e) {
     // Log error

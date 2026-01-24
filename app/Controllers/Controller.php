@@ -8,6 +8,22 @@
 class Controller
 {
     /**
+     * Constructor
+     */
+    public function __construct()
+    {
+        // Base constructor - can be extended by child classes
+    }
+
+    /**
+     * Verify CSRF token
+     */
+    protected function verifyCsrf(): void
+    {
+        CsrfMiddleware::verify();
+    }
+
+    /**
      * Render a view
      * @param string $view
      * @param array $data

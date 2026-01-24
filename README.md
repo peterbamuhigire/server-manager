@@ -5,16 +5,16 @@ A web-based PHP application for managing Ubuntu VPS servers with a beautiful das
 ![PHP Version](https://img.shields.io/badge/PHP-8.2+-blue)
 ![License](https://img.shields.io/badge/License-MIT-green)
 ![Status](https://img.shields.io/badge/Status-In%20Development-yellow)
-![Phase](https://img.shields.io/badge/Phase%203-Complete%20%E2%9C%85-brightgreen)
-![Progress](https://img.shields.io/badge/Progress-31%25%20(3%2F13%20Phases)-orange)
+![Phase](https://img.shields.io/badge/Phase%204-Complete%20%E2%9C%85-brightgreen)
+![Progress](https://img.shields.io/badge/Progress-38%25%20(4%2F13%20Phases)-orange)
 
 ---
 
 ## 📊 Project Status
 
-**Current Phase:** Phase 3 ✅ COMPLETE (Git Integration)
+**Current Phase:** Phase 4 ✅ COMPLETE (Application Management)
 **Last Updated:** January 24, 2026
-**Overall Progress:** 31% (3 of 13 phases complete)
+**Overall Progress:** 38% (4 of 13 phases complete)
 
 ### What's Working Now
 - ✅ **User Authentication** - Secure login/logout with session management
@@ -27,9 +27,9 @@ A web-based PHP application for managing Ubuntu VPS servers with a beautiful das
 - ✅ **Enhanced Dashboard** - Live server health widgets and activity feed
 - ✅ **Git Integration** - SSH key management and GitHub connection testing
 - ✅ **Installation** - Automated setup scripts for dev/demo/prod
+- ✅ **Application Management** - Deploy apps from Git, Apache vhost configuration, app status tracking
 
-### Coming Next (Phase 4+)
-- ⏳ App deployment from GitHub
+### Coming Next (Phase 5+)
 - ⏳ Domain & SSL management
 - ⏳ Database management
 - ⏳ WordPress installer
@@ -213,7 +213,7 @@ chwezi-sm/
 
 ---
 
-## 🖥️ Usage (Phase 1)
+## 🖥️ Usage
 
 ### Login
 
@@ -272,6 +272,52 @@ chwezi-sm/
 **Viewer**:
 - Read-only access to all features
 
+### Git Integration (Phase 3)
+
+**Generate SSH Key:**
+1. Navigate to **Git Integration**
+2. Click **Generate New SSH Key**
+3. Copy the public key displayed
+4. Add to your GitHub account under Settings → SSH Keys
+
+**Test GitHub Connection:**
+1. Navigate to **Git Integration**
+2. Click **Test GitHub Connection**
+3. Verify connection status
+
+### Application Management (Phase 4)
+
+**Deploy a New Application:**
+1. Navigate to **Apps** → **New Application**
+2. Enter:
+   - Application Name (e.g., "My Laravel App")
+   - Subdomain (e.g., "myapp" will be accessible at myapp.localhost)
+   - Git Repository URL (e.g., https://github.com/username/repo.git)
+   - Git Branch (e.g., "main" or "master")
+   - Document Root (optional, e.g., "public" for Laravel/Symfony apps)
+3. Click **Create Application**
+4. On the app details page, click **Deploy Application**
+5. Wait for deployment to complete
+6. Access your app at http://subdomain.localhost
+
+**Redeploy (Pull Latest Changes):**
+1. Navigate to **Apps**
+2. Click on your application
+3. Click **Redeploy (Pull Latest)**
+4. Wait for redeployment to complete
+
+**Delete Application:**
+1. Navigate to **Apps**
+2. Click on your application
+3. Click **Delete Application**
+4. Confirm deletion (this removes all files and vhost configuration)
+
+**Application Statuses:**
+- **Pending:** App created but not yet deployed
+- **Deploying:** Deployment in progress
+- **Active:** App successfully deployed and accessible
+- **Error:** Deployment failed (check error message for details)
+
 ### Development Server
 
 For local development:
@@ -284,10 +330,6 @@ http://localhost/server-manager/public
 cd /var/www/chwezi-sm
 php -S localhost:8000 -t public
 ```
-
-### Coming in Phase 2+
-
-App deployment, domain management, SSL certificates, databases, WordPress installer, and more!
 
 ---
 
@@ -432,10 +474,27 @@ tail -f /var/log/apache2/error.log
 - [x] Remember me functionality
 - [x] Basic dashboard
 
-**Phase 2-13: Coming Soon**
-- [ ] Dashboard stats & server monitoring
-- [ ] Git integration & SSH keys
-- [ ] App deployment from GitHub
+**Phase 2: Dashboard & Server Monitoring (✅ COMPLETE)**
+- [x] Real-time server metrics (CPU, RAM, Disk)
+- [x] Service status monitoring (Apache, MySQL)
+- [x] Activity logging system
+- [x] Enhanced dashboard with widgets
+
+**Phase 3: Git Integration (✅ COMPLETE)**
+- [x] SSH key generation and management
+- [x] GitHub connection testing
+- [x] Git configuration management
+- [x] Secure key storage
+
+**Phase 4: Application Management (✅ COMPLETE)**
+- [x] App deployment from Git repositories
+- [x] Apache virtual host configuration
+- [x] App status tracking (pending, deploying, active, error)
+- [x] Deployment and redeployment functionality
+- [x] Composer dependency installation
+- [x] Custom document root support
+
+**Phase 5-13: Coming Soon**
 - [ ] Domain management
 - [ ] SSL management
 - [ ] Database management
