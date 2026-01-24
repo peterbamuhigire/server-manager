@@ -1,0 +1,32 @@
+===================================
+Chwezi Server Manager - Test Suite
+===================================
+
+Running: AppModelTest.php
+--------------------------------------------------
+Running App Model Tests...
+Test: Create App... PASSED
+Test: Find App... PASSED
+Test: Update App... PASSED
+Test: Delete App... PASSED
+All App Model tests passed!
+
+Running: CronServiceTest.php
+--------------------------------------------------
+Running Cron Service Tests...
+  Testing cron schedule validation...
+    ✓ Schedule validation works correctly
+  Testing common schedule templates...
+    ✓ Common schedules are correct
+  Testing next run time calculation...
+    ✓ Next run calculation works
+  Testing cron job creation...
+    ✓ Job creation works correctly
+  Testing job enable/disable...
+    ✓ Job toggle works correctly
+  Testing job execution...
+    ✓ Job execution works correctly
+  Cleaning up test data...
+    ✓ Cleanup complete
+✓ All Cron Service tests passed!
+
