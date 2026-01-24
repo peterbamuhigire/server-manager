@@ -3,6 +3,7 @@
 require_once __DIR__ . '/../Models/SslCertificate.php';
 require_once __DIR__ . '/../Models/Domain.php';
 require_once __DIR__ . '/ActivityLogService.php';
+require_once __DIR__ . '/DomainService.php';
 
 /**
  * SSL Service
@@ -29,9 +30,9 @@ class SSLService
     }
 
     /**
-     * Generate Let's Encrypt certificate
+     * Generate certificate
      */
-    public function generateCertificate($domainId, $userId)
+    public function generateCertificate($domainId, $userId, $provider = 'self-signed')
     {
         try {
             $domainModel = new Domain();
@@ -41,16 +42,24 @@ class SSLService
                 throw new Exception('Domain not found');
             }
 
-            // Check if certbot is available
-            if (!$this->isCertbotInstalled()) {
-                throw new Exception('Certbot is not installed. Please install certbot first.');
+            // Generate certificate
+            if ($provider === 'self-signed') {
+                $result = $this->generateSelfSignedCertificate($domain['domain_name']);
+            } else {
+                // Check if certbot is available
+                if (!$this->isCertbotInstalled()) {
+                    throw new Exception('Certbot is not installed. Please install certbot first.');
+                }
+                $result = $this->runCertbot($domain['domain_name']);
             }
-
-            // Generate certificate using certbot
-            $result = $this->runCertbot($domain['domain_name']);
 
             if (!$result['success']) {
                 throw new Exception($result['message']);
+            }
+
+            // If self-signed, trust it (Linux only support for now)
+            if ($provider === 'self-signed' && stripos(PHP_OS, 'WIN') !== 0) {
+                $this->trustCertificate($result['cert_path']);
             }
 
             // Save certificate info to database
@@ -60,7 +69,7 @@ class SSLService
                 'certificate_path' => $result['cert_path'],
                 'private_key_path' => $result['key_path'],
                 'chain_path' => $result['chain_path'],
-                'provider' => 'letsencrypt',
+                'provider' => $provider,
                 'status' => 'active',
                 'issued_at' => date('Y-m-d H:i:s'),
                 'expires_at' => $result['expires_at'],
@@ -81,7 +90,7 @@ class SSLService
             $this->activityLog->log(
                 'ssl_certificate_created',
                 'SSL certificate generated for: ' . $domain['domain_name'],
-                ['domain_id' => $domainId, 'cert_id' => $certId]
+                ['domain_id' => $domainId, 'cert_id' => $certId, 'provider' => $provider]
             );
 
             return [
@@ -217,10 +226,12 @@ class SSLService
         $keyPath = $certDir . '/privkey.pem';
 
         // Generate self-signed certificate using OpenSSL
+        // Added SAN (Subject Alternative Name) which is required by modern browsers
         $command = sprintf(
-            'openssl req -x509 -newkey rsa:4096 -keyout %s -out %s -days 365 -nodes -subj "/CN=%s" 2>&1',
+            'openssl req -x509 -newkey rsa:2048 -keyout %s -out %s -days 365 -nodes -subj "/C=US/ST=Local/L=Local/O=Dev/CN=%s" -addext "subjectAltName=DNS:%s" 2>&1',
             escapeshellarg($keyPath),
             escapeshellarg($certPath),
+            $domainName,
             $domainName
         );
 
@@ -229,7 +240,7 @@ class SSLService
         if ($returnCode !== 0) {
             return [
                 'success' => false,
-                'message' => 'Failed to generate self-signed certificate'
+                'message' => 'Failed to generate self-signed certificate: ' . implode("\n", $output)
             ];
         }
 
@@ -240,6 +251,35 @@ class SSLService
             'chain_path' => null,
             'expires_at' => date('Y-m-d H:i:s', strtotime('+365 days'))
         ];
+    }
+
+    /**
+     * Trust certificate (OS level)
+     */
+    private function trustCertificate($certPath)
+    {
+        if (stripos(PHP_OS, 'WIN') === 0) {
+            return;
+        }
+
+        $certName = basename(dirname($certPath)) . '_' . basename($certPath);
+        if (!str_ends_with($certName, '.crt')) {
+             $certName .= '.crt';
+        }
+
+        // Copy to ca-certificates using sudo (configured in sudoers)
+        $cmdCopy = sprintf(
+            'sudo cp %s /usr/local/share/ca-certificates/%s',
+            escapeshellarg($certPath),
+            escapeshellarg($certName)
+        );
+        exec($cmdCopy, $output, $returnCode);
+
+        if ($returnCode === 0) {
+            // Update CA certificates
+            $cmdUpdate = 'sudo update-ca-certificates';
+            exec($cmdUpdate);
+        }
     }
 
     /**
@@ -277,8 +317,13 @@ class SSLService
      */
     private function updateVhostForSSL($domain, $certInfo)
     {
-        // This would update the Apache vhost configuration to include SSL
-        // For now, we'll just log it
+        $domainService = new DomainService();
+        $domainService->enableSSLForDomain(
+            $domain,
+            $certInfo['cert_path'],
+            $certInfo['key_path']
+        );
+
         $this->activityLog->log(
             'vhost_ssl_updated',
             'Apache vhost updated with SSL for: ' . $domain['domain_name'],

@@ -82,6 +82,74 @@ class DomainService
     }
 
     /**
+     * Enable SSL for domain
+     */
+    public function enableSSLForDomain($domain, $certPath, $keyPath)
+    {
+        try {
+            $vhostFile = $this->getVhostFilePath($domain['domain_name']);
+            $vhostContent = $this->generateDomainVhostContentWithSSL($domain, $certPath, $keyPath);
+
+            // Write vhost file
+            if (file_put_contents($vhostFile, $vhostContent) === false) {
+                throw new Exception('Failed to write vhost file');
+            }
+
+            // Enable site (Linux only) and reload Apache
+            $this->enableSite($domain['domain_name']);
+            $this->reloadApache();
+
+            $this->activityLog->log(
+                'ssl_enabled',
+                'SSL enabled for: ' . $domain['domain_name'],
+                ['domain_id' => $domain['id']]
+            );
+
+            return [
+                'success' => true,
+                'message' => 'SSL enabled successfully'
+            ];
+
+        } catch (Exception $e) {
+            return [
+                'success' => false,
+                'message' => 'Failed to enable SSL: ' . $e->getMessage()
+            ];
+        }
+    }
+
+    /**
+     * Generate vhost content with SSL
+     */
+    private function generateDomainVhostContentWithSSL($domain, $certPath, $keyPath)
+    {
+        $domainName = $domain['domain_name'];
+        $documentRoot = $this->getDocumentRoot($domain);
+
+        $vhost = "<VirtualHost *:80>\n";
+        $vhost .= "    ServerName {$domainName}\n";
+        $vhost .= "    Redirect permanent / https://{$domainName}/\n";
+        $vhost .= "</VirtualHost>\n\n";
+
+        $vhost .= "<VirtualHost *:443>\n";
+        $vhost .= "    ServerName {$domainName}\n";
+        $vhost .= "    DocumentRoot \"{$documentRoot}\"\n\n";
+        $vhost .= "    SSLEngine on\n";
+        $vhost .= "    SSLCertificateFile \"{$certPath}\"\n";
+        $vhost .= "    SSLCertificateKeyFile \"{$keyPath}\"\n\n";
+        $vhost .= "    <Directory \"{$documentRoot}\">\n";
+        $vhost .= "        Options Indexes FollowSymLinks MultiViews\n";
+        $vhost .= "        AllowOverride All\n";
+        $vhost .= "        Require all granted\n";
+        $vhost .= "    </Directory>\n\n";
+        $vhost .= "    ErrorLog \${APACHE_LOG_DIR}/{$domainName}-error.log\n";
+        $vhost .= "    CustomLog \${APACHE_LOG_DIR}/{$domainName}-access.log combined\n";
+        $vhost .= "</VirtualHost>\n";
+
+        return $vhost;
+    }
+
+    /**
      * Create Apache virtual host for domain
      */
     private function createDomainVhost($domain)
@@ -120,6 +188,15 @@ class DomainService
      */
     private function generateDomainVhostContent($domain)
     {
+        // If SSL is enabled, use SSL template
+        if (!empty($domain['ssl_enabled']) && $domain['ssl_enabled']) {
+            return $this->generateDomainVhostContentWithSSL(
+                $domain, 
+                $domain['ssl_certificate_path'] ?? '', 
+                $domain['ssl_key_path'] ?? ''
+            );
+        }
+
         $domainName = $domain['domain_name'];
         $documentRoot = $this->getDocumentRoot($domain);
 
@@ -132,8 +209,8 @@ class DomainService
         $vhost .= "        AllowOverride All\n";
         $vhost .= "        Require all granted\n";
         $vhost .= "    </Directory>\n\n";
-        $vhost .= "    ErrorLog \"logs/{$domainName}-error.log\"\n";
-        $vhost .= "    CustomLog \"logs/{$domainName}-access.log\" common\n";
+        $vhost .= "    ErrorLog \${APACHE_LOG_DIR}/{$domainName}-error.log\n";
+        $vhost .= "    CustomLog \${APACHE_LOG_DIR}/{$domainName}-access.log combined\n";
         $vhost .= "</VirtualHost>\n";
 
         return $vhost;
