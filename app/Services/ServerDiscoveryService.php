@@ -45,6 +45,321 @@ class ServerDiscoveryService
     }
 
     /**
+     * Discover all with registration status
+     */
+    public function discoverAllWithStatus()
+    {
+        $discovered = $this->discoverAll();
+
+        // Check registration status for directories (apps)
+        $registeredApps = $this->getRegisteredApps();
+        foreach ($discovered['directories'] as &$dir) {
+            $dir['registered'] = isset($registeredApps[$dir['name']]);
+            $dir['db_id'] = $registeredApps[$dir['name']]['id'] ?? null;
+            $dir['db_record'] = $registeredApps[$dir['name']] ?? null;
+        }
+
+        // Check registration status for domains
+        $registeredDomains = $this->getRegisteredDomains();
+        foreach ($discovered['domains'] as &$domain) {
+            $serverName = $domain['server_name'] ?? '';
+            $domain['registered'] = isset($registeredDomains[$serverName]);
+            $domain['db_id'] = $registeredDomains[$serverName]['id'] ?? null;
+            $domain['db_record'] = $registeredDomains[$serverName] ?? null;
+        }
+
+        // Check registration status for databases
+        if (isset($discovered['databases']['databases'])) {
+            $registeredDbs = $this->getRegisteredDatabases();
+            foreach ($discovered['databases']['databases'] as &$db) {
+                $db['registered'] = isset($registeredDbs[$db['name']]);
+                $db['db_id'] = $registeredDbs[$db['name']]['id'] ?? null;
+                $db['db_record'] = $registeredDbs[$db['name']] ?? null;
+            }
+        }
+
+        return $discovered;
+    }
+
+    /**
+     * Get registered apps indexed by subdomain
+     */
+    private function getRegisteredApps()
+    {
+        try {
+            require_once __DIR__ . '/../Models/App.php';
+            $appModel = new App();
+            $apps = $appModel->all();
+
+            $indexed = [];
+            foreach ($apps as $app) {
+                $indexed[$app['subdomain']] = $app;
+            }
+            return $indexed;
+        } catch (Exception $e) {
+            return [];
+        }
+    }
+
+    /**
+     * Get registered domains indexed by domain_name
+     */
+    private function getRegisteredDomains()
+    {
+        try {
+            require_once __DIR__ . '/../Models/Domain.php';
+            $domainModel = new Domain();
+            $domains = $domainModel->all();
+
+            $indexed = [];
+            foreach ($domains as $domain) {
+                $indexed[$domain['domain_name']] = $domain;
+            }
+            return $indexed;
+        } catch (Exception $e) {
+            return [];
+        }
+    }
+
+    /**
+     * Get registered databases indexed by database_name
+     */
+    private function getRegisteredDatabases()
+    {
+        try {
+            require_once __DIR__ . '/../Models/MysqlDatabase.php';
+            $dbModel = new MysqlDatabase();
+            $databases = $dbModel->all();
+
+            $indexed = [];
+            foreach ($databases as $db) {
+                $indexed[$db['database_name']] = $db;
+            }
+            return $indexed;
+        } catch (Exception $e) {
+            return [];
+        }
+    }
+
+    /**
+     * Register an app (directory) in the database
+     */
+    public function registerApp($name, $userId)
+    {
+        try {
+            require_once __DIR__ . '/../Models/App.php';
+            $appModel = new App();
+
+            // Check if already exists
+            $existing = $appModel->where(['subdomain' => $name]);
+            if ($existing) {
+                return ['success' => false, 'message' => 'App already registered'];
+            }
+
+            // Get directory info
+            $path = $this->webRoot . '/' . $name;
+            $hasPublicDir = is_dir($path . '/public');
+
+            $appId = $appModel->create([
+                'name' => ucfirst(str_replace(['-', '_'], ' ', $name)),
+                'subdomain' => $name,
+                'git_repo' => null,
+                'git_branch' => null,
+                'document_root' => $hasPublicDir ? 'public' : '',
+                'status' => 'active',
+                'user_id' => $userId
+            ]);
+
+            if ($this->activityLog) {
+                $this->activityLog->log('app_registered', 'App registered from discovery: ' . $name, ['app_id' => $appId]);
+            }
+
+            return ['success' => true, 'message' => 'App registered successfully', 'id' => $appId];
+        } catch (Exception $e) {
+            return ['success' => false, 'message' => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Unregister an app (remove from database only)
+     */
+    public function unregisterApp($id)
+    {
+        try {
+            require_once __DIR__ . '/../Models/App.php';
+            $appModel = new App();
+
+            $app = $appModel->find($id);
+            if (!$app) {
+                return ['success' => false, 'message' => 'App not found'];
+            }
+
+            $appModel->delete($id);
+
+            if ($this->activityLog) {
+                $this->activityLog->log('app_unregistered', 'App unregistered: ' . $app['subdomain'], ['app_id' => $id]);
+            }
+
+            return ['success' => true, 'message' => 'App unregistered successfully'];
+        } catch (Exception $e) {
+            return ['success' => false, 'message' => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Register a domain in the database
+     */
+    public function registerDomain($serverName, $documentRoot, $sslEnabled, $userId)
+    {
+        try {
+            require_once __DIR__ . '/../Models/Domain.php';
+            $domainModel = new Domain();
+
+            // Check if already exists
+            $existing = $domainModel->where(['domain_name' => $serverName]);
+            if ($existing) {
+                return ['success' => false, 'message' => 'Domain already registered'];
+            }
+
+            $domainId = $domainModel->create([
+                'domain_name' => $serverName,
+                'document_root' => $documentRoot,
+                'ssl_enabled' => $sslEnabled ? 1 : 0,
+                'vhost_configured' => 1,
+                'dns_configured' => 1,
+                'status' => 'active',
+                'user_id' => $userId
+            ]);
+
+            if ($this->activityLog) {
+                $this->activityLog->log('domain_registered', 'Domain registered from discovery: ' . $serverName, ['domain_id' => $domainId]);
+            }
+
+            return ['success' => true, 'message' => 'Domain registered successfully', 'id' => $domainId];
+        } catch (Exception $e) {
+            return ['success' => false, 'message' => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Unregister a domain (remove from database only)
+     */
+    public function unregisterDomain($id)
+    {
+        try {
+            require_once __DIR__ . '/../Models/Domain.php';
+            $domainModel = new Domain();
+
+            $domain = $domainModel->find($id);
+            if (!$domain) {
+                return ['success' => false, 'message' => 'Domain not found'];
+            }
+
+            $domainModel->delete($id);
+
+            if ($this->activityLog) {
+                $this->activityLog->log('domain_unregistered', 'Domain unregistered: ' . $domain['domain_name'], ['domain_id' => $id]);
+            }
+
+            return ['success' => true, 'message' => 'Domain unregistered successfully'];
+        } catch (Exception $e) {
+            return ['success' => false, 'message' => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Register a database in the database
+     */
+    public function registerDatabase($dbName, $userId)
+    {
+        try {
+            require_once __DIR__ . '/../Models/MysqlDatabase.php';
+            $dbModel = new MysqlDatabase();
+
+            // Check if already exists
+            $existing = $dbModel->where(['database_name' => $dbName]);
+            if ($existing) {
+                return ['success' => false, 'message' => 'Database already registered'];
+            }
+
+            // Get database info
+            $dbInfo = $this->getDatabaseInfo($dbName);
+
+            $dbId = $dbModel->create([
+                'database_name' => $dbName,
+                'database_user' => null,
+                'database_size' => $dbInfo['size'] ?? 0,
+                'status' => 'active',
+                'user_id' => $userId
+            ]);
+
+            if ($this->activityLog) {
+                $this->activityLog->log('database_registered', 'Database registered from discovery: ' . $dbName, ['database_id' => $dbId]);
+            }
+
+            return ['success' => true, 'message' => 'Database registered successfully', 'id' => $dbId];
+        } catch (Exception $e) {
+            return ['success' => false, 'message' => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Unregister a database (remove from our database only, not the actual MySQL database)
+     */
+    public function unregisterDatabase($id)
+    {
+        try {
+            require_once __DIR__ . '/../Models/MysqlDatabase.php';
+            $dbModel = new MysqlDatabase();
+
+            $db = $dbModel->find($id);
+            if (!$db) {
+                return ['success' => false, 'message' => 'Database record not found'];
+            }
+
+            $dbModel->delete($id);
+
+            if ($this->activityLog) {
+                $this->activityLog->log('database_unregistered', 'Database unregistered: ' . $db['database_name'], ['database_id' => $id]);
+            }
+
+            return ['success' => true, 'message' => 'Database unregistered successfully'];
+        } catch (Exception $e) {
+            return ['success' => false, 'message' => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Get info about a specific database
+     */
+    private function getDatabaseInfo($dbName)
+    {
+        try {
+            $dbConfig = [
+                'host' => config('database.host', 'localhost'),
+                'username' => config('database.username', 'root'),
+                'password' => config('database.password', ''),
+            ];
+
+            $pdo = new PDO(
+                "mysql:host={$dbConfig['host']}",
+                $dbConfig['username'],
+                $dbConfig['password'],
+                [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
+            );
+
+            $sizeQuery = "SELECT SUM(data_length + index_length) as size FROM information_schema.TABLES WHERE table_schema = ?";
+            $stmt = $pdo->prepare($sizeQuery);
+            $stmt->execute([$dbName]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            return ['size' => (int)($result['size'] ?? 0)];
+        } catch (Exception $e) {
+            return ['size' => 0];
+        }
+    }
+
+    /**
      * Discover directories in web root
      */
     public function discoverDirectories()
@@ -346,9 +661,9 @@ class ServerDiscoveryService
 
         try {
             $dbConfig = [
-                'host' => config('db.host', 'localhost'),
-                'username' => config('db.username', 'root'),
-                'password' => config('db.password', ''),
+                'host' => config('database.host', 'localhost'),
+                'username' => config('database.username', 'root'),
+                'password' => config('database.password', ''),
             ];
 
             $pdo = new PDO(

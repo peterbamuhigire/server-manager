@@ -205,6 +205,12 @@ $routes = [
 
         // Server Discovery
         '/discovery/import' => ['DiscoveryController', 'import', ['auth', 'root', 'csrf']],
+        '/discovery/register-app' => ['DiscoveryController', 'registerApp', ['auth', 'root', 'csrf']],
+        '/discovery/unregister-app' => ['DiscoveryController', 'unregisterApp', ['auth', 'root', 'csrf']],
+        '/discovery/register-domain' => ['DiscoveryController', 'registerDomain', ['auth', 'root', 'csrf']],
+        '/discovery/unregister-domain' => ['DiscoveryController', 'unregisterDomain', ['auth', 'root', 'csrf']],
+        '/discovery/register-database' => ['DiscoveryController', 'registerDatabase', ['auth', 'root', 'csrf']],
+        '/discovery/unregister-database' => ['DiscoveryController', 'unregisterDatabase', ['auth', 'root', 'csrf']],
     ],
     'DELETE' => [
         '/apps/{id}' => ['AppController', 'destroy', ['auth', 'csrf']],
