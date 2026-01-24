@@ -96,6 +96,11 @@ $routes = [
         '/domains/create' => ['DomainController', 'create', ['auth']],
         '/domains/{id}' => ['DomainController', 'show', ['auth']],
         '/domains/{id}/check-dns' => ['DomainController', 'checkDns', ['auth']],
+
+        // SSL management
+        '/ssl' => ['SSLController', 'index', ['auth']],
+        '/ssl/create' => ['SSLController', 'create', ['auth']],
+        '/ssl/{id}' => ['SSLController', 'show', ['auth']],
     ],
     'POST' => [
         '/login' => ['AuthController', 'login', []],
@@ -122,10 +127,16 @@ $routes = [
         // Domain management
         '/domains' => ['DomainController', 'store', ['auth', 'csrf']],
         '/domains/{id}/configure' => ['DomainController', 'configure', ['auth', 'csrf']],
+
+        // SSL management
+        '/ssl' => ['SSLController', 'store', ['auth', 'csrf']],
+        '/ssl/{id}/renew' => ['SSLController', 'renew', ['auth', 'csrf']],
+        '/ssl/{id}/delete' => ['SSLController', 'destroy', ['auth', 'csrf']],
     ],
     'DELETE' => [
         '/apps/{id}' => ['AppController', 'destroy', ['auth', 'csrf']],
         '/domains/{id}' => ['DomainController', 'destroy', ['auth', 'csrf']],
+        '/ssl/{id}' => ['SSLController', 'destroy', ['auth', 'csrf']],
     ],
 ];
 
