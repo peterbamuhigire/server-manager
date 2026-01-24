@@ -50,6 +50,23 @@ class CsrfMiddleware
     }
 
     /**
+     * Validate CSRF token (returns bool instead of dying)
+     * @param string $token
+     * @return bool
+     */
+    public static function validate(string $token): bool
+    {
+        // Skip CSRF check if disabled in config
+        if (!config('app.csrf_enabled', true)) {
+            return true;
+        }
+
+        $sessionToken = $_SESSION['csrf_token'] ?? '';
+
+        return hash_equals($sessionToken, $token);
+    }
+
+    /**
      * Generate CSRF token input field
      * @return string
      */

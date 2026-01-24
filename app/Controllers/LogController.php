@@ -51,7 +51,7 @@ class LogController extends Controller
     /**
      * View a specific log file
      */
-    public function view()
+    public function showLog()
     {
         $this->requireAuth();
 

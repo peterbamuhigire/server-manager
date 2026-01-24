@@ -120,7 +120,7 @@ $routes = [
 
         // Log Viewer
         '/logs' => ['LogController', 'index', ['auth']],
-        '/logs/view' => ['LogController', 'view', ['auth']],
+        '/logs/view' => ['LogController', 'showLog', ['auth']],
         '/logs/tail' => ['LogController', 'tail', ['auth']],
         '/logs/download' => ['LogController', 'download', ['auth']],
 

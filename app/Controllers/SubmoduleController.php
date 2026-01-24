@@ -29,6 +29,8 @@ class SubmoduleController extends Controller
      */
     public function index()
     {
+        $this->requireAuth();
+
         $submoduleModel = new GitSubmodule();
         $submodules = $submoduleModel->getAll();
         $stats = $submoduleModel->getStats();
@@ -47,6 +49,8 @@ class SubmoduleController extends Controller
      */
     public function create()
     {
+        $this->requireAuth();
+
         $data = [
             'pageTitle' => 'Add Git Submodule',
             'csrf_token' => $this->generateCsrfToken()
@@ -60,6 +64,8 @@ class SubmoduleController extends Controller
      */
     public function store()
     {
+        $this->requireAuth();
+
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             $this->redirect('/submodules');
             return;
@@ -108,6 +114,8 @@ class SubmoduleController extends Controller
      */
     public function show($id)
     {
+        $this->requireAuth();
+
         $result = $this->submoduleService->getStatus($id);
 
         if (!$result['success']) {
@@ -135,6 +143,8 @@ class SubmoduleController extends Controller
      */
     public function update($id)
     {
+        $this->requireAuth();
+
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             $this->redirect('/submodules/' . $id);
             return;
@@ -162,6 +172,8 @@ class SubmoduleController extends Controller
      */
     public function link()
     {
+        $this->requireAuth();
+
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             $this->redirect('/submodules');
             return;
@@ -209,6 +221,8 @@ class SubmoduleController extends Controller
      */
     public function unlink()
     {
+        $this->requireAuth();
+
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             $this->redirect('/submodules');
             return;
@@ -246,6 +260,8 @@ class SubmoduleController extends Controller
      */
     public function destroy($id)
     {
+        $this->requireAuth();
+
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             $this->redirect('/submodules');
             return;

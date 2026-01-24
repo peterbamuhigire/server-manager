@@ -56,44 +56,35 @@ $currentPath = current_url();
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
                     </svg>
                     Git Integration
-                    <span class="ml-auto bg-green-600 px-2 py-1 text-xs rounded-full">New</span>
                 </a>
-
-                <div class="mt-8 px-6">
-                    <p class="text-xs text-gray-400 uppercase tracking-wide mb-3">Coming Soon</p>
-                </div>
 
                 <a href="/apps" class="flex items-center px-6 py-3 <?= strpos($currentPath, '/apps') === 0 ? 'bg-blue-600 border-r-4 border-blue-400' : 'hover:bg-gray-800' ?>">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
                     </svg>
                     Apps
-                    <span class="ml-auto bg-green-600 px-2 py-1 text-xs rounded-full">New</span>
-                </a>
+                                    </a>
 
                 <a href="/domains" class="flex items-center px-6 py-3 <?= strpos($currentPath, '/domains') === 0 ? 'bg-blue-600 border-r-4 border-blue-400' : 'hover:bg-gray-800' ?>">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path>
                     </svg>
                     Domains
-                    <span class="ml-auto bg-green-600 px-2 py-1 text-xs rounded-full">New</span>
-                </a>
+                                    </a>
 
                 <a href="/ssl" class="flex items-center px-6 py-3 <?= strpos($currentPath, '/ssl') === 0 ? 'bg-blue-600 border-r-4 border-blue-400' : 'hover:bg-gray-800' ?>">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
                     </svg>
                     SSL Certificates
-                    <span class="ml-auto bg-green-600 px-2 py-1 text-xs rounded-full">New</span>
-                </a>
+                                    </a>
 
                 <a href="/databases" class="flex items-center px-6 py-3 <?= strpos($currentPath, '/databases') === 0 ? 'bg-blue-600 border-r-4 border-blue-400' : 'hover:bg-gray-800' ?>">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"></path>
                     </svg>
                     Databases
-                    <span class="ml-auto bg-green-600 px-2 py-1 text-xs rounded-full">New</span>
-                </a>
+                                    </a>
 
                 <a href="/wordpress/install" class="flex items-center px-6 py-3 <?= strpos($currentPath, '/wordpress') === 0 ? 'bg-blue-600 border-r-4 border-blue-400' : 'hover:bg-gray-800' ?>">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -101,40 +92,35 @@ $currentPath = current_url();
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                     </svg>
                     WordPress Installer
-                    <span class="ml-auto bg-green-600 px-2 py-1 text-xs rounded-full">New</span>
-                </a>
+                                    </a>
 
                 <a href="/cron" class="flex items-center px-6 py-3 <?= strpos($currentPath, '/cron') === 0 ? 'bg-blue-600 border-r-4 border-blue-400' : 'hover:bg-gray-800' ?>">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
                     Cron Jobs
-                    <span class="ml-auto bg-green-600 px-2 py-1 text-xs rounded-full">New</span>
-                </a>
+                                    </a>
 
                 <a href="/logs" class="flex items-center px-6 py-3 <?= strpos($currentPath, '/logs') === 0 ? 'bg-blue-600 border-r-4 border-blue-400' : 'hover:bg-gray-800' ?>">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                     </svg>
                     Log Viewer
-                    <span class="ml-auto bg-green-600 px-2 py-1 text-xs rounded-full">New</span>
-                </a>
+                                    </a>
 
                 <a href="/terminal" class="flex items-center px-6 py-3 <?= strpos($currentPath, '/terminal') === 0 ? 'bg-blue-600 border-r-4 border-blue-400' : 'hover:bg-gray-800' ?>">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                     </svg>
                     Web Terminal
-                    <span class="ml-auto bg-green-600 px-2 py-1 text-xs rounded-full">New</span>
-                </a>
+                                    </a>
 
                 <a href="/submodules" class="flex items-center px-6 py-3 <?= strpos($currentPath, '/submodules') === 0 ? 'bg-blue-600 border-r-4 border-blue-400' : 'hover:bg-gray-800' ?>">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
                     </svg>
                     Git Submodules
-                    <span class="ml-auto bg-green-600 px-2 py-1 text-xs rounded-full">New</span>
-                </a>
+                                    </a>
             </nav>
 
             <!-- User Menu -->

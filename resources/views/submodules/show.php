@@ -2,6 +2,7 @@
 /**
  * Git Submodules - Show View
  */
+ob_start();
 ?>
 
 <!-- Header -->
@@ -311,3 +312,8 @@ document.getElementById('linkModal')?.addEventListener('click', function(e) {
     }
 });
 </script>
+
+<?php
+$content = ob_get_clean();
+require __DIR__ . '/../layouts/main.php';
+?>
