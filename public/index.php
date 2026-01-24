@@ -132,6 +132,15 @@ $routes = [
         '/submodules' => ['SubmoduleController', 'index', ['auth']],
         '/submodules/create' => ['SubmoduleController', 'create', ['auth']],
         '/submodules/{id}' => ['SubmoduleController', 'show', ['auth']],
+
+        // Server Discovery (root only)
+        '/discovery' => ['DiscoveryController', 'index', ['auth', 'root']],
+        '/discovery/scan' => ['DiscoveryController', 'scan', ['auth', 'root']],
+        '/discovery/directories' => ['DiscoveryController', 'directories', ['auth', 'root']],
+        '/discovery/domains' => ['DiscoveryController', 'domains', ['auth', 'root']],
+        '/discovery/ssl' => ['DiscoveryController', 'ssl', ['auth', 'root']],
+        '/discovery/databases' => ['DiscoveryController', 'databases', ['auth', 'root']],
+        '/discovery/view-config' => ['DiscoveryController', 'viewConfig', ['auth', 'root']],
     ],
     'POST' => [
         '/login' => ['AuthController', 'login', []],
@@ -193,6 +202,9 @@ $routes = [
         '/submodules/link' => ['SubmoduleController', 'link', ['auth', 'csrf']],
         '/submodules/unlink' => ['SubmoduleController', 'unlink', ['auth', 'csrf']],
         '/submodules/{id}/delete' => ['SubmoduleController', 'destroy', ['auth', 'csrf']],
+
+        // Server Discovery
+        '/discovery/import' => ['DiscoveryController', 'import', ['auth', 'root', 'csrf']],
     ],
     'DELETE' => [
         '/apps/{id}' => ['AppController', 'destroy', ['auth', 'csrf']],

@@ -1,0 +1,701 @@
+<?php
+
+/**
+ * Server Discovery Service
+ * Automatically discovers existing apps, domains, SSL certificates, and databases
+ *
+ * @package ChweziSM
+ * @subpackage Services
+ */
+class ServerDiscoveryService
+{
+    private $webRoot;
+    private $sitesAvailable;
+    private $sitesEnabled;
+    private $sslCertsPath;
+    private $activityLog;
+
+    public function __construct()
+    {
+        $this->webRoot = config('paths.web_root', '/var/www') . '/html';
+        $this->sitesAvailable = config('paths.apache_sites_available', '/etc/apache2/sites-available');
+        $this->sitesEnabled = config('paths.apache_sites_enabled', '/etc/apache2/sites-enabled');
+        $this->sslCertsPath = '/etc/letsencrypt/live';
+
+        // Load ActivityLogService if available
+        if (class_exists('ActivityLogService')) {
+            $this->activityLog = new ActivityLogService();
+        } else {
+            $this->activityLog = null;
+        }
+    }
+
+    /**
+     * Discover all server resources
+     */
+    public function discoverAll()
+    {
+        return [
+            'directories' => $this->discoverDirectories(),
+            'domains' => $this->discoverDomains(),
+            'ssl_certificates' => $this->discoverSSLCertificates(),
+            'databases' => $this->discoverDatabases(),
+            'discovered_at' => date('Y-m-d H:i:s')
+        ];
+    }
+
+    /**
+     * Discover directories in web root
+     */
+    public function discoverDirectories()
+    {
+        $directories = [];
+
+        if (!is_dir($this->webRoot)) {
+            return $directories;
+        }
+
+        $items = scandir($this->webRoot);
+
+        foreach ($items as $item) {
+            if ($item === '.' || $item === '..') {
+                continue;
+            }
+
+            $fullPath = $this->webRoot . '/' . $item;
+
+            if (!is_dir($fullPath)) {
+                continue;
+            }
+
+            $dirInfo = [
+                'name' => $item,
+                'path' => $fullPath,
+                'size' => $this->getDirectorySize($fullPath),
+                'modified' => filemtime($fullPath),
+                'is_git_repo' => is_dir($fullPath . '/.git'),
+                'has_composer' => file_exists($fullPath . '/composer.json'),
+                'has_package_json' => file_exists($fullPath . '/package.json'),
+                'is_wordpress' => file_exists($fullPath . '/wp-config.php') || file_exists($fullPath . '/wp-config-sample.php'),
+                'is_laravel' => file_exists($fullPath . '/artisan'),
+                'has_public_dir' => is_dir($fullPath . '/public'),
+                'framework' => $this->detectFramework($fullPath),
+                'linked_domain' => null
+            ];
+
+            $directories[] = $dirInfo;
+        }
+
+        return $directories;
+    }
+
+    /**
+     * Discover Apache virtual host configurations
+     */
+    public function discoverDomains()
+    {
+        $domains = [];
+
+        if (!is_dir($this->sitesAvailable)) {
+            return $domains;
+        }
+
+        $files = scandir($this->sitesAvailable);
+
+        foreach ($files as $file) {
+            if ($file === '.' || $file === '..' || !preg_match('/\.conf$/', $file)) {
+                continue;
+            }
+
+            $confPath = $this->sitesAvailable . '/' . $file;
+            $parsed = $this->parseApacheConfig($confPath);
+
+            if (!empty($parsed)) {
+                // Check if site is enabled
+                $enabledPath = $this->sitesEnabled . '/' . $file;
+                $parsed['enabled'] = file_exists($enabledPath) || is_link($enabledPath);
+                $parsed['config_file'] = $file;
+                $parsed['config_path'] = $confPath;
+
+                $domains[] = $parsed;
+            }
+        }
+
+        return $domains;
+    }
+
+    /**
+     * Parse Apache virtual host configuration file
+     */
+    private function parseApacheConfig($filePath)
+    {
+        if (!file_exists($filePath) || !is_readable($filePath)) {
+            return null;
+        }
+
+        $content = file_get_contents($filePath);
+
+        $config = [
+            'server_name' => null,
+            'server_aliases' => [],
+            'document_root' => null,
+            'port' => 80,
+            'ssl_enabled' => false,
+            'ssl_certificate' => null,
+            'ssl_certificate_key' => null,
+            'error_log' => null,
+            'access_log' => null,
+            'directory_options' => [],
+            'raw_config' => $content
+        ];
+
+        // Parse VirtualHost port
+        if (preg_match('/<VirtualHost\s+\*:(\d+)>/i', $content, $matches)) {
+            $config['port'] = (int)$matches[1];
+            if ($config['port'] === 443) {
+                $config['ssl_enabled'] = true;
+            }
+        }
+
+        // Parse ServerName (ignore comments)
+        if (preg_match('/^\s*ServerName\s+(\S+)/im', $content, $matches)) {
+            $serverName = trim($matches[1]);
+            // Ignore if it looks like a comment or placeholder
+            if (!preg_match('/^(#|www\.example|example\.com|directive|the\s)/i', $serverName)) {
+                $config['server_name'] = $serverName;
+            }
+        }
+
+        // Parse ServerAlias
+        if (preg_match_all('/ServerAlias\s+(.+)/i', $content, $matches)) {
+            foreach ($matches[1] as $alias) {
+                $aliases = preg_split('/\s+/', trim($alias));
+                $config['server_aliases'] = array_merge($config['server_aliases'], $aliases);
+            }
+        }
+
+        // Parse DocumentRoot
+        if (preg_match('/DocumentRoot\s+["\']?([^"\'>\n]+)["\']?/i', $content, $matches)) {
+            $config['document_root'] = trim($matches[1]);
+        }
+
+        // Parse SSL settings
+        if (preg_match('/SSLEngine\s+on/i', $content)) {
+            $config['ssl_enabled'] = true;
+        }
+
+        if (preg_match('/SSLCertificateFile\s+(.+)/i', $content, $matches)) {
+            $config['ssl_certificate'] = trim($matches[1]);
+        }
+
+        if (preg_match('/SSLCertificateKeyFile\s+(.+)/i', $content, $matches)) {
+            $config['ssl_certificate_key'] = trim($matches[1]);
+        }
+
+        // Parse log files
+        if (preg_match('/ErrorLog\s+(.+)/i', $content, $matches)) {
+            $config['error_log'] = trim($matches[1]);
+        }
+
+        if (preg_match('/CustomLog\s+(\S+)/i', $content, $matches)) {
+            $config['access_log'] = trim($matches[1]);
+        }
+
+        // Only return if we found meaningful configuration
+        if ($config['server_name'] || $config['document_root']) {
+            return $config;
+        }
+
+        return null;
+    }
+
+    /**
+     * Discover SSL certificates
+     */
+    public function discoverSSLCertificates()
+    {
+        $certificates = [];
+
+        // Check Let's Encrypt certificates
+        if (is_dir($this->sslCertsPath)) {
+            $domains = scandir($this->sslCertsPath);
+
+            foreach ($domains as $domain) {
+                if ($domain === '.' || $domain === '..' || $domain === 'README') {
+                    continue;
+                }
+
+                $certPath = $this->sslCertsPath . '/' . $domain;
+
+                if (is_dir($certPath)) {
+                    $certInfo = $this->parseCertificate($certPath . '/fullchain.pem');
+                    $certificates[] = [
+                        'domain' => $domain,
+                        'provider' => 'letsencrypt',
+                        'path' => $certPath,
+                        'cert_file' => $certPath . '/fullchain.pem',
+                        'key_file' => $certPath . '/privkey.pem',
+                        'chain_file' => $certPath . '/chain.pem',
+                        'valid' => file_exists($certPath . '/fullchain.pem'),
+                        'expires_at' => $certInfo['expires_at'] ?? null,
+                        'issued_at' => $certInfo['issued_at'] ?? null,
+                        'issuer' => $certInfo['issuer'] ?? null
+                    ];
+                }
+            }
+        }
+
+        // Check Apache SSL directory
+        $apacheSSLPath = '/etc/apache2/ssl';
+        if (is_dir($apacheSSLPath)) {
+            $files = scandir($apacheSSLPath);
+
+            foreach ($files as $file) {
+                if (preg_match('/\.crt$/', $file)) {
+                    $certFile = $apacheSSLPath . '/' . $file;
+                    $keyFile = $apacheSSLPath . '/' . str_replace('.crt', '.key', $file);
+                    $certInfo = $this->parseCertificate($certFile);
+
+                    $certificates[] = [
+                        'domain' => str_replace('.crt', '', $file),
+                        'provider' => 'self-signed',
+                        'path' => $apacheSSLPath,
+                        'cert_file' => $certFile,
+                        'key_file' => file_exists($keyFile) ? $keyFile : null,
+                        'chain_file' => null,
+                        'valid' => file_exists($certFile),
+                        'expires_at' => $certInfo['expires_at'] ?? null,
+                        'issued_at' => $certInfo['issued_at'] ?? null,
+                        'issuer' => $certInfo['issuer'] ?? null
+                    ];
+                }
+            }
+        }
+
+        // Also scan from Apache configs for SSL certificates
+        $domains = $this->discoverDomains();
+        foreach ($domains as $domain) {
+            if ($domain['ssl_enabled'] && $domain['ssl_certificate']) {
+                $certPath = $domain['ssl_certificate'];
+                if (file_exists($certPath)) {
+                    $certInfo = $this->parseCertificate($certPath);
+
+                    // Check if already in list
+                    $exists = false;
+                    foreach ($certificates as $cert) {
+                        if ($cert['cert_file'] === $certPath) {
+                            $exists = true;
+                            break;
+                        }
+                    }
+
+                    if (!$exists) {
+                        $certificates[] = [
+                            'domain' => $domain['server_name'],
+                            'provider' => 'custom',
+                            'path' => dirname($certPath),
+                            'cert_file' => $certPath,
+                            'key_file' => $domain['ssl_certificate_key'],
+                            'chain_file' => null,
+                            'valid' => true,
+                            'expires_at' => $certInfo['expires_at'] ?? null,
+                            'issued_at' => $certInfo['issued_at'] ?? null,
+                            'issuer' => $certInfo['issuer'] ?? null
+                        ];
+                    }
+                }
+            }
+        }
+
+        return $certificates;
+    }
+
+    /**
+     * Parse SSL certificate to get expiry and other info
+     */
+    private function parseCertificate($certPath)
+    {
+        if (!file_exists($certPath)) {
+            return [];
+        }
+
+        $certData = @file_get_contents($certPath);
+        if (!$certData) {
+            return [];
+        }
+
+        $cert = @openssl_x509_parse($certData);
+        if (!$cert) {
+            return [];
+        }
+
+        return [
+            'expires_at' => isset($cert['validTo_time_t']) ? date('Y-m-d H:i:s', $cert['validTo_time_t']) : null,
+            'issued_at' => isset($cert['validFrom_time_t']) ? date('Y-m-d H:i:s', $cert['validFrom_time_t']) : null,
+            'issuer' => $cert['issuer']['O'] ?? $cert['issuer']['CN'] ?? 'Unknown',
+            'subject' => $cert['subject']['CN'] ?? null
+        ];
+    }
+
+    /**
+     * Discover MySQL databases
+     */
+    public function discoverDatabases()
+    {
+        $databases = [];
+
+        try {
+            $dbConfig = [
+                'host' => config('db.host', 'localhost'),
+                'username' => config('db.username', 'root'),
+                'password' => config('db.password', ''),
+            ];
+
+            $pdo = new PDO(
+                "mysql:host={$dbConfig['host']}",
+                $dbConfig['username'],
+                $dbConfig['password'],
+                [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
+            );
+
+            // Get all databases
+            $stmt = $pdo->query("SHOW DATABASES");
+            $allDatabases = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+            // System databases to exclude from main list
+            $systemDbs = ['information_schema', 'mysql', 'performance_schema', 'sys'];
+
+            foreach ($allDatabases as $dbName) {
+                $isSystem = in_array($dbName, $systemDbs);
+
+                // Get database size
+                $sizeQuery = "SELECT
+                    SUM(data_length + index_length) as size,
+                    COUNT(*) as tables_count
+                    FROM information_schema.TABLES
+                    WHERE table_schema = ?";
+                $sizeStmt = $pdo->prepare($sizeQuery);
+                $sizeStmt->execute([$dbName]);
+                $sizeInfo = $sizeStmt->fetch(PDO::FETCH_ASSOC);
+
+                // Get character set
+                $charsetQuery = "SELECT DEFAULT_CHARACTER_SET_NAME, DEFAULT_COLLATION_NAME
+                                FROM information_schema.SCHEMATA
+                                WHERE SCHEMA_NAME = ?";
+                $charsetStmt = $pdo->prepare($charsetQuery);
+                $charsetStmt->execute([$dbName]);
+                $charsetInfo = $charsetStmt->fetch(PDO::FETCH_ASSOC);
+
+                $databases[] = [
+                    'name' => $dbName,
+                    'size' => (int)($sizeInfo['size'] ?? 0),
+                    'size_formatted' => $this->formatBytes((int)($sizeInfo['size'] ?? 0)),
+                    'tables_count' => (int)($sizeInfo['tables_count'] ?? 0),
+                    'charset' => $charsetInfo['DEFAULT_CHARACTER_SET_NAME'] ?? 'unknown',
+                    'collation' => $charsetInfo['DEFAULT_COLLATION_NAME'] ?? 'unknown',
+                    'is_system' => $isSystem,
+                    'is_wordpress' => $this->isWordPressDatabase($pdo, $dbName),
+                    'linked_app' => $this->guessLinkedApp($dbName)
+                ];
+            }
+
+            // Get database users
+            $usersQuery = "SELECT User, Host FROM mysql.user WHERE User != '' ORDER BY User";
+            $usersStmt = $pdo->query($usersQuery);
+            $users = $usersStmt->fetchAll(PDO::FETCH_ASSOC);
+
+        } catch (PDOException $e) {
+            return [
+                'error' => 'Database connection failed: ' . $e->getMessage(),
+                'databases' => [],
+                'users' => []
+            ];
+        }
+
+        return [
+            'databases' => $databases,
+            'users' => $users ?? [],
+            'total_count' => count($databases),
+            'user_count' => count($systemDbs) > 0 ? count($databases) - count(array_filter($databases, fn($d) => $d['is_system'])) : count($databases)
+        ];
+    }
+
+    /**
+     * Check if database is a WordPress database
+     */
+    private function isWordPressDatabase($pdo, $dbName)
+    {
+        try {
+            $query = "SELECT COUNT(*) FROM information_schema.TABLES
+                      WHERE table_schema = ?
+                      AND (table_name LIKE '%_options' OR table_name LIKE '%_posts' OR table_name LIKE '%_users')";
+            $stmt = $pdo->prepare($query);
+            $stmt->execute([$dbName]);
+            return $stmt->fetchColumn() >= 3;
+        } catch (PDOException $e) {
+            return false;
+        }
+    }
+
+    /**
+     * Guess linked application from database name
+     */
+    private function guessLinkedApp($dbName)
+    {
+        // Common patterns: wp_sitename, sitename_db, sitename_wordpress
+        $patterns = [
+            '/^wp_(.+)$/' => '$1',
+            '/^(.+)_db$/' => '$1',
+            '/^(.+)_wordpress$/' => '$1',
+            '/^(.+)_wp$/' => '$1',
+        ];
+
+        foreach ($patterns as $pattern => $replacement) {
+            if (preg_match($pattern, $dbName, $matches)) {
+                return $matches[1];
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Detect framework used in directory
+     */
+    private function detectFramework($path)
+    {
+        if (file_exists($path . '/artisan')) {
+            return 'Laravel';
+        }
+        if (file_exists($path . '/wp-config.php') || file_exists($path . '/wp-config-sample.php')) {
+            return 'WordPress';
+        }
+        if (file_exists($path . '/bin/console') && file_exists($path . '/symfony.lock')) {
+            return 'Symfony';
+        }
+        if (file_exists($path . '/yii')) {
+            return 'Yii';
+        }
+        if (file_exists($path . '/craft')) {
+            return 'Craft CMS';
+        }
+        if (file_exists($path . '/package.json')) {
+            $pkg = json_decode(file_get_contents($path . '/package.json'), true);
+            if (isset($pkg['dependencies']['next'])) {
+                return 'Next.js';
+            }
+            if (isset($pkg['dependencies']['nuxt'])) {
+                return 'Nuxt.js';
+            }
+            if (isset($pkg['dependencies']['react'])) {
+                return 'React';
+            }
+            if (isset($pkg['dependencies']['vue'])) {
+                return 'Vue.js';
+            }
+            if (isset($pkg['dependencies']['express'])) {
+                return 'Express.js';
+            }
+            return 'Node.js';
+        }
+        if (is_dir($path . '/app') && is_dir($path . '/public') && file_exists($path . '/public/index.php')) {
+            return 'PHP MVC';
+        }
+        if (file_exists($path . '/index.php')) {
+            return 'PHP';
+        }
+        if (file_exists($path . '/index.html')) {
+            return 'Static HTML';
+        }
+
+        return 'Unknown';
+    }
+
+    /**
+     * Get directory size (approximate for performance)
+     */
+    private function getDirectorySize($path)
+    {
+        $size = 0;
+
+        // Use du command for better performance on Linux
+        if (stripos(PHP_OS, 'WIN') !== 0) {
+            exec("du -sb " . escapeshellarg($path) . " 2>/dev/null | cut -f1", $output);
+            if (!empty($output[0])) {
+                return (int)$output[0];
+            }
+        }
+
+        // Fallback to PHP
+        try {
+            $iterator = new RecursiveIteratorIterator(
+                new RecursiveDirectoryIterator($path, RecursiveDirectoryIterator::SKIP_DOTS),
+                RecursiveIteratorIterator::SELF_FIRST
+            );
+
+            foreach ($iterator as $file) {
+                if ($file->isFile()) {
+                    $size += $file->getSize();
+                }
+            }
+        } catch (Exception $e) {
+            // Ignore permission errors
+        }
+
+        return $size;
+    }
+
+    /**
+     * Format bytes to human readable
+     */
+    private function formatBytes($bytes)
+    {
+        $units = ['B', 'KB', 'MB', 'GB', 'TB'];
+        $bytes = max($bytes, 0);
+        $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
+        $pow = min($pow, count($units) - 1);
+        $bytes /= pow(1024, $pow);
+
+        return round($bytes, 2) . ' ' . $units[$pow];
+    }
+
+    /**
+     * Import discovered items into database
+     */
+    public function importDiscoveredItems($items, $userId)
+    {
+        $results = [
+            'apps' => ['imported' => 0, 'skipped' => 0, 'errors' => []],
+            'domains' => ['imported' => 0, 'skipped' => 0, 'errors' => []],
+            'databases' => ['imported' => 0, 'skipped' => 0, 'errors' => []],
+            'ssl' => ['imported' => 0, 'skipped' => 0, 'errors' => []]
+        ];
+
+        // Import apps (directories)
+        if (!empty($items['directories'])) {
+            require_once __DIR__ . '/../Models/App.php';
+            $appModel = new App();
+
+            foreach ($items['directories'] as $dir) {
+                if ($dir['name'] === 'server-manager') {
+                    continue; // Skip self
+                }
+
+                // Check if already exists
+                $existing = $appModel->where(['subdomain' => $dir['name']]);
+                if ($existing) {
+                    $results['apps']['skipped']++;
+                    continue;
+                }
+
+                try {
+                    $appModel->create([
+                        'name' => ucfirst(str_replace(['-', '_'], ' ', $dir['name'])),
+                        'subdomain' => $dir['name'],
+                        'git_repo' => null,
+                        'git_branch' => null,
+                        'document_root' => $dir['has_public_dir'] ? 'public' : '',
+                        'status' => 'active',
+                        'user_id' => $userId
+                    ]);
+                    $results['apps']['imported']++;
+                } catch (Exception $e) {
+                    $results['apps']['errors'][] = $dir['name'] . ': ' . $e->getMessage();
+                }
+            }
+        }
+
+        // Import domains
+        if (!empty($items['domains'])) {
+            require_once __DIR__ . '/../Models/Domain.php';
+            $domainModel = new Domain();
+
+            foreach ($items['domains'] as $domain) {
+                if (empty($domain['server_name'])) {
+                    continue;
+                }
+
+                // Check if already exists
+                $existing = $domainModel->where(['domain_name' => $domain['server_name']]);
+                if ($existing) {
+                    $results['domains']['skipped']++;
+                    continue;
+                }
+
+                try {
+                    $domainModel->create([
+                        'domain_name' => $domain['server_name'],
+                        'document_root' => $domain['document_root'],
+                        'ssl_enabled' => $domain['ssl_enabled'] ? 1 : 0,
+                        'vhost_configured' => 1,
+                        'dns_configured' => 1,
+                        'status' => $domain['enabled'] ? 'active' : 'inactive',
+                        'user_id' => $userId
+                    ]);
+                    $results['domains']['imported']++;
+                } catch (Exception $e) {
+                    $results['domains']['errors'][] = $domain['server_name'] . ': ' . $e->getMessage();
+                }
+            }
+        }
+
+        // Import databases
+        if (!empty($items['databases']['databases'])) {
+            require_once __DIR__ . '/../Models/MysqlDatabase.php';
+            $dbModel = new MysqlDatabase();
+
+            foreach ($items['databases']['databases'] as $db) {
+                if ($db['is_system']) {
+                    continue; // Skip system databases
+                }
+
+                // Check if already exists
+                $existing = $dbModel->where(['database_name' => $db['name']]);
+                if ($existing) {
+                    $results['databases']['skipped']++;
+                    continue;
+                }
+
+                try {
+                    $dbModel->create([
+                        'database_name' => $db['name'],
+                        'database_user' => null,
+                        'database_size' => $db['size'],
+                        'status' => 'active',
+                        'user_id' => $userId
+                    ]);
+                    $results['databases']['imported']++;
+                } catch (Exception $e) {
+                    $results['databases']['errors'][] = $db['name'] . ': ' . $e->getMessage();
+                }
+            }
+        }
+
+        // Log activity
+        if ($this->activityLog) {
+            $this->activityLog->log(
+                'server_discovery_import',
+                'Imported discovered server resources',
+                $results
+            );
+        }
+
+        return $results;
+    }
+
+    /**
+     * Link discovered resources together
+     */
+    public function linkResources()
+    {
+        $linked = [
+            'apps_to_domains' => 0,
+            'apps_to_databases' => 0
+        ];
+
+        // This would analyze and link apps to their domains and databases
+        // Based on document root matching, database naming patterns, etc.
+
+        return $linked;
+    }
+}
