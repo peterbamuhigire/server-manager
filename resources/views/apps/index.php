@@ -33,28 +33,28 @@ ob_start();
             <div class="bg-white rounded-lg shadow hover:shadow-lg transition">
                 <div class="p-6">
                     <div class="flex justify-between items-start mb-4">
-                        <h3 class="text-lg font-bold text-gray-800"><?= e($app->name) ?></h3>
+                        <h3 class="text-lg font-bold text-gray-800"><?= e($app['name']) ?></h3>
                         <span class="px-3 py-1 text-xs font-medium rounded-full
-                            <?php if ($app->status === 'active'): ?>bg-green-100 text-green-800
-                            <?php elseif ($app->status === 'deploying'): ?>bg-yellow-100 text-yellow-800
-                            <?php elseif ($app->status === 'error'): ?>bg-red-100 text-red-800
+                            <?php if ($app['status'] === 'active'): ?>bg-green-100 text-green-800
+                            <?php elseif ($app['status'] === 'deploying'): ?>bg-yellow-100 text-yellow-800
+                            <?php elseif ($app['status'] === 'error'): ?>bg-red-100 text-red-800
                             <?php else: ?>bg-gray-100 text-gray-800<?php endif; ?>">
-                            <?= ucfirst($app->status) ?>
+                            <?= ucfirst($app['status']) ?>
                         </span>
                     </div>
 
                     <div class="space-y-2">
                         <div>
                             <p class="text-sm font-medium text-gray-700">Subdomain:</p>
-                            <?php if ($app->status === 'active'): ?>
-                                <a href="http://<?= e($app->subdomain) ?>.localhost" target="_blank" class="text-blue-600 hover:text-blue-800 text-sm">
-                                    <?= e($app->subdomain) ?>.localhost
+                            <?php if ($app['status'] === 'active'): ?>
+                                <a href="http://<?= e($app['subdomain']) ?>.localhost" target="_blank" class="text-blue-600 hover:text-blue-800 text-sm">
+                                    <?= e($app['subdomain']) ?>.localhost
                                     <svg class="inline-block w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
                                     </svg>
                                 </a>
                             <?php else: ?>
-                                <p class="text-gray-600 text-sm"><?= e($app->subdomain) ?>.localhost</p>
+                                <p class="text-gray-600 text-sm"><?= e($app['subdomain']) ?>.localhost</p>
                             <?php endif; ?>
                         </div>
 
@@ -63,26 +63,26 @@ ob_start();
                                 <svg class="inline-block w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
                                 </svg>
-                                Branch: <code class="text-xs bg-gray-100 px-2 py-1 rounded"><?= e($app->git_branch) ?></code>
+                                Branch: <code class="text-xs bg-gray-100 px-2 py-1 rounded"><?= e($app['git_branch']) ?></code>
                             </p>
                         </div>
 
-                        <?php if ($app->deployed_at): ?>
+                        <?php if ($app['deployed_at']): ?>
                             <p class="text-xs text-gray-500">
-                                Deployed: <?= format_date($app->deployed_at) ?>
+                                Deployed: <?= format_date($app['deployed_at']) ?>
                             </p>
                         <?php endif; ?>
 
-                        <?php if ($app->status === 'error' && $app->error_message): ?>
+                        <?php if ($app['status'] === 'error' && $app['error_message']): ?>
                             <div class="bg-red-50 border border-red-200 rounded p-2 mt-2">
-                                <p class="text-xs text-red-800"><?= e($app->error_message) ?></p>
+                                <p class="text-xs text-red-800"><?= e($app['error_message']) ?></p>
                             </div>
                         <?php endif; ?>
                     </div>
                 </div>
 
                 <div class="border-t border-gray-200 px-6 py-3 bg-gray-50 rounded-b-lg">
-                    <a href="/apps/<?= $app->id ?>" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                    <a href="/apps/<?= $app['id'] ?>" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
                         View Details →
                     </a>
                 </div>

@@ -359,6 +359,24 @@ class DatabaseService
      */
     private function runMysqldump($databaseName, $outputFile)
     {
+        // Check directory permissions first
+        $directory = dirname($outputFile);
+        if (!is_dir($directory)) {
+            if (!mkdir($directory, 0755, true)) {
+                 return [
+                    'success' => false,
+                    'message' => "Backup failed: Cannot create directory $directory. Permission denied."
+                ];
+            }
+        }
+        
+        if (!is_writable($directory)) {
+            return [
+                'success' => false,
+                'message' => "Backup failed: Directory $directory is not writable."
+            ];
+        }
+
         // For Windows WAMP
         if (stripos(PHP_OS, 'WIN') === 0) {
             $mysqldump = escapeshellarg('C:/wamp64/bin/mysql/mysql8.4.7/bin/mysqldump.exe');
@@ -366,20 +384,28 @@ class DatabaseService
             $mysqldump = 'mysqldump'; // Don't escape command name on Linux
         }
 
+        $errorFile = $outputFile . '.err';
+
         $command = sprintf(
-            '%s --user=%s --password=%s --host=%s %s > %s 2>&1',
+            '%s --user=%s --password=%s --host=%s %s > %s 2> %s',
             $mysqldump,
             escapeshellarg($this->dbConfig['username']),
             escapeshellarg($this->dbConfig['password']),
             escapeshellarg($this->dbConfig['host']),
             escapeshellarg($databaseName),
-            escapeshellarg($outputFile)
+            escapeshellarg($outputFile),
+            escapeshellarg($errorFile)
         );
 
         exec($command, $output, $returnCode);
 
         if ($returnCode !== 0) {
             $errorOutput = implode("\n", $output);
+
+            if (empty($errorOutput) && file_exists($errorFile)) {
+                $errorOutput = trim(file_get_contents($errorFile));
+            }
+
             $errorMessage = "Database backup failed.\n\n";
             $errorMessage .= "Database: {$databaseName}\n";
             $errorMessage .= "Exit Code: {$returnCode}\n\n";
@@ -398,6 +424,10 @@ class DatabaseService
                 'success' => false,
                 'message' => $errorMessage
             ];
+        }
+
+        if (file_exists($errorFile)) {
+            @unlink($errorFile);
         }
 
         return ['success' => true];

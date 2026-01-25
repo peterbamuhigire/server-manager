@@ -55,6 +55,17 @@ echo -e "${GREEN}3. Trusting Certificate${NC}"
 cp "$CERT_FILE" /usr/local/share/ca-certificates/$DOMAIN.crt
 update-ca-certificates
 
+# 3.5 Setup Log Directory
+echo -e "${GREEN}3.5 Setting up Log Directory${NC}"
+mkdir -p "${PROJECT_ROOT}/storage/logs"
+touch "${PROJECT_ROOT}/storage/logs/php_error.log"
+# Attempt to identify apache user, default to www-data
+APACHE_USER="www-data"
+if id "apache" &>/dev/null; then APACHE_USER="apache"; fi
+chown -R $APACHE_USER:$APACHE_USER "${PROJECT_ROOT}/storage/logs"
+chmod -R 775 "${PROJECT_ROOT}/storage/logs"
+echo "   - Configured permissions for ${PROJECT_ROOT}/storage/logs"
+
 # 4. Create Apache Config
 echo -e "${GREEN}4. Configuring Apache VHost${NC}"
 
@@ -77,6 +88,12 @@ cat > $APACHE_CONF <<EOF
         AllowOverride All
         Require all granted
     </Directory>
+
+    # PHP Logging Configuration
+    php_flag log_errors on
+    php_flag display_errors on
+    php_value error_reporting 32767
+    php_value error_log ${PROJECT_ROOT}/storage/logs/php_error.log
 
     ErrorLog \${APACHE_LOG_DIR}/${DOMAIN}_error.log
     CustomLog \${APACHE_LOG_DIR}/${DOMAIN}_access.log combined

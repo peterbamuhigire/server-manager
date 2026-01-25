@@ -36,6 +36,7 @@ class LogViewerService
                 '/var/log/php8.2-fpm.log',
                 '/var/log/php8.3-fpm.log',
                 '/var/log/php8.4-fpm.log',
+                __DIR__ . '/../../storage/logs/php_error.log',
                 ini_get('error_log'), // PHP configured error log
             ],
             'syslog' => [
@@ -62,6 +63,26 @@ class LogViewerService
             return $this->getWindowsLogs();
         }
 
+        // Add specific log files (like PHP error logs)
+        if (isset($this->specificLogs)) {
+            foreach ($this->specificLogs as $category => $files) {
+                foreach ($files as $file) {
+                    if (empty($file) || isset($addedPaths[$file])) continue;
+                    if (!file_exists($file) || !is_readable($file)) continue;
+
+                    $addedPaths[$file] = true;
+                    $logs[] = [
+                        'category' => $category,
+                        'name' => basename($file),
+                        'path' => $file,
+                        'size' => filesize($file),
+                        'modified' => filemtime($file),
+                        'readable' => true
+                    ];
+                }
+            }
+        }
+
         // Scan directories
         foreach ($this->logPaths as $category => $path) {
             if (!is_dir($path)) {
@@ -82,26 +103,6 @@ class LogViewerService
                     'modified' => file_exists($file) ? filemtime($file) : 0,
                     'readable' => is_readable($file)
                 ];
-            }
-        }
-
-        // Add specific log files (like PHP error logs)
-        if (isset($this->specificLogs)) {
-            foreach ($this->specificLogs as $category => $files) {
-                foreach ($files as $file) {
-                    if (empty($file) || isset($addedPaths[$file])) continue;
-                    if (!file_exists($file) || !is_readable($file)) continue;
-
-                    $addedPaths[$file] = true;
-                    $logs[] = [
-                        'category' => $category,
-                        'name' => basename($file),
-                        'path' => $file,
-                        'size' => filesize($file),
-                        'modified' => filemtime($file),
-                        'readable' => true
-                    ];
-                }
             }
         }
 

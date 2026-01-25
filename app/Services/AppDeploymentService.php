@@ -1,14 +1,12 @@
 <?php
 
-namespace App\Services;
-
-use App\Models\App;
-use Exception;
+require_once __DIR__ . '/../Models/App.php';
+require_once __DIR__ . '/ActivityLogService.php';
 
 class AppDeploymentService
 {
-    private string $appsBasePath;
-    private ActivityLogService $activityLog;
+    private $appsBasePath;
+    private $activityLog;
 
     public function __construct()
     {
@@ -24,16 +22,16 @@ class AppDeploymentService
     /**
      * Deploy an application from a git repository
      */
-    public function deploy(App $app): array
+    public function deploy(array $app): array
     {
         try {
-            $app->status = 'deploying';
-            $app->save();
+            $appModel = new App();
+            $appModel->update($app['id'], ['status' => 'deploying']);
 
-            $appPath = $this->getAppPath($app->subdomain);
+            $appPath = $this->getAppPath($app['subdomain']);
 
             // Clone repository
-            $this->cloneRepository($app->git_repo, $appPath, $app->git_branch);
+            $this->cloneRepository($app['git_repo'], $appPath, $app['git_branch']);
 
             // Run composer install if composer.json exists
             if (file_exists($appPath . '/composer.json')) {
@@ -41,14 +39,16 @@ class AppDeploymentService
             }
 
             // Update app status
-            $app->status = 'active';
-            $app->deployed_at = date('Y-m-d H:i:s');
-            $app->save();
+            $appModel->update($app['id'], [
+                'status' => 'active',
+                'deployed_at' => date('Y-m-d H:i:s'),
+                'error_message' => null
+            ]);
 
             $this->activityLog->log(
                 'app_deployed',
-                'Application deployed successfully: ' . $app->name,
-                ['app_id' => $app->id, 'subdomain' => $app->subdomain]
+                'Application deployed successfully: ' . $app['name'],
+                ['app_id' => $app['id'], 'subdomain' => $app['subdomain']]
             );
 
             return [
@@ -57,14 +57,16 @@ class AppDeploymentService
             ];
 
         } catch (Exception $e) {
-            $app->status = 'error';
-            $app->error_message = $e->getMessage();
-            $app->save();
+            $appModel = new App();
+            $appModel->update($app['id'], [
+                'status' => 'error',
+                'error_message' => $e->getMessage()
+            ]);
 
             $this->activityLog->log(
                 'app_deploy_failed',
                 'Application deployment failed: ' . $e->getMessage(),
-                ['app_id' => $app->id, 'error' => $e->getMessage()]
+                ['app_id' => $app['id'], 'error' => $e->getMessage()]
             );
 
             return [
@@ -77,34 +79,36 @@ class AppDeploymentService
     /**
      * Redeploy an application (pull latest changes)
      */
-    public function redeploy(App $app): array
+    public function redeploy(array $app): array
     {
         try {
-            $app->status = 'deploying';
-            $app->save();
+            $appModel = new App();
+            $appModel->update($app['id'], ['status' => 'deploying']);
 
-            $appPath = $this->getAppPath($app->subdomain);
+            $appPath = $this->getAppPath($app['subdomain']);
 
             if (!is_dir($appPath . '/.git')) {
                 throw new Exception('Application not deployed or .git directory missing');
             }
 
             // Pull latest changes
-            $this->pullLatestChanges($appPath, $app->git_branch);
+            $this->pullLatestChanges($appPath, $app['git_branch']);
 
             // Run composer install if composer.json exists
             if (file_exists($appPath . '/composer.json')) {
                 $this->runComposerInstall($appPath);
             }
 
-            $app->status = 'active';
-            $app->deployed_at = date('Y-m-d H:i:s');
-            $app->save();
+            $appModel->update($app['id'], [
+                'status' => 'active',
+                'deployed_at' => date('Y-m-d H:i:s'),
+                'error_message' => null
+            ]);
 
             $this->activityLog->log(
                 'app_redeployed',
-                'Application redeployed successfully: ' . $app->name,
-                ['app_id' => $app->id]
+                'Application redeployed successfully: ' . $app['name'],
+                ['app_id' => $app['id']]
             );
 
             return [
@@ -113,9 +117,11 @@ class AppDeploymentService
             ];
 
         } catch (Exception $e) {
-            $app->status = 'error';
-            $app->error_message = $e->getMessage();
-            $app->save();
+            $appModel = new App();
+            $appModel->update($app['id'], [
+                'status' => 'error',
+                'error_message' => $e->getMessage()
+            ]);
 
             return [
                 'success' => false,
@@ -236,9 +242,9 @@ class AppDeploymentService
     /**
      * Get deployment status and information
      */
-    public function getDeploymentInfo(App $app): array
+    public function getDeploymentInfo(array $app): array
     {
-        $appPath = $this->getAppPath($app->subdomain);
+        $appPath = $this->getAppPath($app['subdomain']);
         $info = [
             'path' => $appPath,
             'exists' => is_dir($appPath),
