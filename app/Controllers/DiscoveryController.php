@@ -516,6 +516,8 @@ class DiscoveryController extends Controller
         $repoUrl = $_POST['repo_url'] ?? '';
         $appName = $_POST['app_name'] ?? '';
         $branch = $_POST['branch'] ?? null;
+        $username = $_POST['git_username'] ?? null;
+        $token = $_POST['git_token'] ?? null;
 
         if (empty($repoUrl)) {
             json_error('Repository URL is required');
@@ -538,7 +540,7 @@ class DiscoveryController extends Controller
         $targetDir = $webRoot . '/' . $appName;
 
         $gitService = new GitService();
-        $result = $gitService->cloneRepository($repoUrl, $targetDir, $branch);
+        $result = $gitService->cloneRepository($repoUrl, $targetDir, $branch, $username, $token);
 
         if ($result['success']) {
             json_success($result['message'], [
@@ -561,6 +563,8 @@ class DiscoveryController extends Controller
 
         $appName = $_POST['app_name'] ?? '';
         $branch = $_POST['branch'] ?? null;
+        $username = $_POST['git_username'] ?? null;
+        $token = $_POST['git_token'] ?? null;
 
         if (empty($appName)) {
             json_error('Application name is required');
@@ -576,7 +580,7 @@ class DiscoveryController extends Controller
         }
 
         $gitService = new GitService();
-        $result = $gitService->pullRepository($repoDir, $branch);
+        $result = $gitService->pullRepository($repoDir, $branch, $username, $token);
 
         if ($result['success']) {
             json_success($result['message'], [

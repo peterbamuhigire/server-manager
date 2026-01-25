@@ -10,6 +10,7 @@
 class LogViewerService
 {
     private $logPaths;
+    private $specificLogs;
     private $maxFileSize;
 
     public function __construct()
@@ -24,6 +25,26 @@ class LogViewerService
             'system' => '/var/log'
         ];
 
+        // Additional specific log files (PHP error logs in various locations)
+        $this->specificLogs = [
+            'php' => [
+                '/var/log/php_errors.log',
+                '/var/log/php-fpm/error.log',
+                '/var/log/php-fpm/www-error.log',
+                '/var/log/php8.0-fpm.log',
+                '/var/log/php8.1-fpm.log',
+                '/var/log/php8.2-fpm.log',
+                '/var/log/php8.3-fpm.log',
+                '/var/log/php8.4-fpm.log',
+                ini_get('error_log'), // PHP configured error log
+            ],
+            'syslog' => [
+                '/var/log/syslog',
+                '/var/log/messages',
+                '/var/log/auth.log',
+            ]
+        ];
+
         // Maximum file size to read (10MB)
         $this->maxFileSize = 10 * 1024 * 1024;
     }
@@ -34,12 +55,14 @@ class LogViewerService
     public function getAvailableLogs()
     {
         $logs = [];
+        $addedPaths = []; // Track added paths to avoid duplicates
 
         // Check if running on Windows (development)
         if (stripos(PHP_OS, 'WIN') === 0) {
             return $this->getWindowsLogs();
         }
 
+        // Scan directories
         foreach ($this->logPaths as $category => $path) {
             if (!is_dir($path)) {
                 continue;
@@ -48,6 +71,9 @@ class LogViewerService
             $files = $this->scanDirectory($path);
 
             foreach ($files as $file) {
+                if (isset($addedPaths[$file])) continue;
+                $addedPaths[$file] = true;
+
                 $logs[] = [
                     'category' => $category,
                     'name' => basename($file),
@@ -56,6 +82,26 @@ class LogViewerService
                     'modified' => file_exists($file) ? filemtime($file) : 0,
                     'readable' => is_readable($file)
                 ];
+            }
+        }
+
+        // Add specific log files (like PHP error logs)
+        if (isset($this->specificLogs)) {
+            foreach ($this->specificLogs as $category => $files) {
+                foreach ($files as $file) {
+                    if (empty($file) || isset($addedPaths[$file])) continue;
+                    if (!file_exists($file) || !is_readable($file)) continue;
+
+                    $addedPaths[$file] = true;
+                    $logs[] = [
+                        'category' => $category,
+                        'name' => basename($file),
+                        'path' => $file,
+                        'size' => filesize($file),
+                        'modified' => filemtime($file),
+                        'readable' => true
+                    ];
+                }
             }
         }
 
@@ -423,10 +469,11 @@ class LogViewerService
         return [
             'apache' => 'Apache Web Server',
             'nginx' => 'Nginx Web Server',
-            'php' => 'PHP',
+            'php' => 'PHP Error Logs',
             'mysql' => 'MySQL Database',
             'application' => 'Application Logs',
-            'system' => 'System Logs'
+            'system' => 'System Logs',
+            'syslog' => 'System Messages'
         ];
     }
 }

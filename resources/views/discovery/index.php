@@ -1361,8 +1361,8 @@ function showCloneModal() {
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Repository URL *</label>
                     <input type="text" id="clone-repo-url" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                           placeholder="https://github.com/user/repo.git or git@github.com:user/repo.git">
-                    <p class="text-xs text-gray-500 mt-1">Supports HTTPS and SSH URLs</p>
+                           placeholder="https://github.com/user/repo.git">
+                    <p class="text-xs text-gray-500 mt-1">Use HTTPS URL for private repos with token auth</p>
                 </div>
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Application Name *</label>
@@ -1374,7 +1374,20 @@ function showCloneModal() {
                     <label class="block text-sm font-medium text-gray-700 mb-1">Branch (optional)</label>
                     <input type="text" id="clone-branch" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                            placeholder="main">
-                    <p class="text-xs text-gray-500 mt-1">Leave empty for default branch</p>
+                </div>
+                <div class="border-t pt-4 mt-4">
+                    <p class="text-sm font-medium text-gray-700 mb-2">GitHub Authentication (for private repos)</p>
+                    <div class="mb-3">
+                        <label class="block text-xs font-medium text-gray-600 mb-1">GitHub Username</label>
+                        <input type="text" id="clone-git-username" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                               placeholder="your-github-username">
+                    </div>
+                    <div class="mb-2">
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Personal Access Token</label>
+                        <input type="password" id="clone-git-token" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                               placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+                        <p class="text-xs text-gray-400 mt-1">Generate at GitHub → Settings → Developer settings → Personal access tokens</p>
+                    </div>
                 </div>
             </div>
         `,
@@ -1387,6 +1400,8 @@ function showCloneModal() {
             const repoUrl = document.getElementById('clone-repo-url').value.trim();
             const appName = document.getElementById('clone-app-name').value.trim();
             const branch = document.getElementById('clone-branch').value.trim();
+            const username = document.getElementById('clone-git-username').value.trim();
+            const token = document.getElementById('clone-git-token').value.trim();
 
             if (!repoUrl) {
                 Swal.showValidationMessage('Repository URL is required');
@@ -1401,22 +1416,24 @@ function showCloneModal() {
                 return false;
             }
 
-            return { repoUrl, appName, branch };
+            return { repoUrl, appName, branch, username, token };
         }
     }).then((result) => {
         if (result.isConfirmed) {
-            gitClone(result.value.repoUrl, result.value.appName, result.value.branch);
+            gitClone(result.value.repoUrl, result.value.appName, result.value.branch, result.value.username, result.value.token);
         }
     });
 }
 
-function gitClone(repoUrl, appName, branch) {
+function gitClone(repoUrl, appName, branch, username, token) {
     SwalUtil.loading('Cloning repository... This may take a moment.');
 
     const body = new URLSearchParams({
         repo_url: repoUrl,
         app_name: appName,
         branch: branch || '',
+        git_username: username || '',
+        git_token: token || '',
         csrf_token: csrfToken
     });
 
@@ -1449,44 +1466,89 @@ function gitClone(repoUrl, appName, branch) {
 }
 
 function gitPull(appName) {
-    SwalUtil.confirm({
-        title: 'Pull Latest Changes?',
-        text: `Pull the latest changes for "${appName}" from the remote repository?`,
-        icon: 'question',
-        confirmText: 'Yes, pull',
-        confirmColor: '#f97316'
+    Swal.fire({
+        title: 'Pull Latest Changes',
+        html: `
+            <div class="text-left">
+                <p class="mb-4 text-gray-600">Pull the latest changes for <strong>${escapeHtml(appName)}</strong> from the remote repository.</p>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Branch (optional)</label>
+                    <input type="text" id="pull-branch" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                           placeholder="Leave empty to use current branch">
+                </div>
+
+                <div class="border-t pt-4 mt-4">
+                    <p class="text-sm font-medium text-gray-700 mb-2">GitHub Authentication (for private repos)</p>
+                    <div class="mb-3">
+                        <label class="block text-xs font-medium text-gray-600 mb-1">GitHub Username</label>
+                        <input type="text" id="pull-git-username" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                               placeholder="your-github-username">
+                    </div>
+                    <div class="mb-2">
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Personal Access Token</label>
+                        <input type="password" id="pull-git-token" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                               placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+                        <p class="text-xs text-gray-400 mt-1">Leave empty for public repos or if SSH is configured</p>
+                    </div>
+                </div>
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Pull',
+        confirmButtonColor: '#f97316',
+        cancelButtonText: 'Cancel',
+        width: '450px',
+        preConfirm: () => {
+            const branch = document.getElementById('pull-branch').value.trim();
+            const username = document.getElementById('pull-git-username').value.trim();
+            const token = document.getElementById('pull-git-token').value.trim();
+            return { branch, username, token };
+        }
     }).then((result) => {
         if (result.isConfirmed) {
-            SwalUtil.loading('Pulling latest changes...');
-
-            fetch('/discovery/git-pull', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: `app_name=${encodeURIComponent(appName)}&csrf_token=${encodeURIComponent(csrfToken)}`
-            })
-            .then(r => r.json())
-            .then(data => {
-                if (data.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Pull Successful!',
-                        html: `<p>${data.message}</p>
-                               ${data.data?.branch ? '<p class="text-sm text-gray-500">Branch: ' + escapeHtml(data.data.branch) + '</p>' : ''}
-                               ${data.data?.output ? '<pre class="text-xs bg-gray-100 p-2 mt-2 rounded max-h-32 overflow-auto text-left">' + escapeHtml(data.data.output) + '</pre>' : ''}`,
-                        confirmButtonText: 'OK'
-                    });
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Pull Failed',
-                        html: `<p>${escapeHtml(data.message)}</p>`,
-                        confirmButtonColor: '#dc2626'
-                    });
-                }
-            })
-            .catch(err => SwalUtil.error('Error: ' + err.message));
+            executePull(appName, result.value.branch, result.value.username, result.value.token);
         }
     });
+}
+
+function executePull(appName, branch, username, token) {
+    SwalUtil.loading('Pulling latest changes...');
+
+    const body = new URLSearchParams({
+        app_name: appName,
+        branch: branch || '',
+        git_username: username || '',
+        git_token: token || '',
+        csrf_token: csrfToken
+    });
+
+    fetch('/discovery/git-pull', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: body.toString()
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Pull Successful!',
+                html: `<p>${data.message}</p>
+                       ${data.data?.branch ? '<p class="text-sm text-gray-500">Branch: ' + escapeHtml(data.data.branch) + '</p>' : ''}
+                       ${data.data?.output ? '<pre class="text-xs bg-gray-100 p-2 mt-2 rounded max-h-32 overflow-auto text-left">' + escapeHtml(data.data.output) + '</pre>' : ''}`,
+                confirmButtonText: 'OK'
+            });
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Pull Failed',
+                html: `<p>${escapeHtml(data.message)}</p>`,
+                confirmButtonColor: '#dc2626'
+            });
+        }
+    })
+    .catch(err => SwalUtil.error('Error: ' + err.message));
 }
 </script>
 

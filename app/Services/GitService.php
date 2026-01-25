@@ -361,9 +361,11 @@ class GitService
      * @param string $repoUrl The repository URL (HTTPS or SSH)
      * @param string $targetDir The target directory path
      * @param string|null $branch Optional branch to clone
+     * @param string|null $username GitHub username for HTTPS auth
+     * @param string|null $token GitHub personal access token for HTTPS auth
      * @return array Result with success status and message
      */
-    public function cloneRepository(string $repoUrl, string $targetDir, ?string $branch = null): array
+    public function cloneRepository(string $repoUrl, string $targetDir, ?string $branch = null, ?string $username = null, ?string $token = null): array
     {
         try {
             // Check if target directory already exists and is not empty
@@ -391,6 +393,13 @@ class GitService
 
             // Determine if using SSH or HTTPS
             $isSSH = (strpos($repoUrl, 'git@') === 0 || strpos($repoUrl, 'ssh://') === 0);
+            $isHTTPS = (strpos($repoUrl, 'https://') === 0);
+
+            // Build authenticated URL if credentials provided
+            $cloneUrl = $repoUrl;
+            if ($isHTTPS && $username && $token) {
+                $cloneUrl = $this->buildAuthUrl($repoUrl, $username, $token);
+            }
 
             if ($isSSH && $this->sshKeyExists()) {
                 $command = sprintf(
@@ -404,13 +413,18 @@ class GitService
                 $command = sprintf(
                     'git clone%s %s %s 2>&1',
                     $branchOption,
-                    escapeshellarg($repoUrl),
+                    escapeshellarg($cloneUrl),
                     escapeshellarg($targetDir)
                 );
             }
 
             exec($command, $output, $returnCode);
             $outputText = implode("\n", $output);
+
+            // Remove any credentials from output for security
+            if ($token) {
+                $outputText = str_replace($token, '***TOKEN***', $outputText);
+            }
 
             if ($returnCode !== 0) {
                 // Clean up empty directory on failure
@@ -422,6 +436,11 @@ class GitService
                     'success' => false,
                     'message' => 'Git clone failed: ' . $outputText
                 ];
+            }
+
+            // If we used authenticated URL, reset remote to original URL (without credentials)
+            if ($isHTTPS && $username && $token) {
+                exec(sprintf('cd %s && git remote set-url origin %s 2>&1', escapeshellarg($targetDir), escapeshellarg($repoUrl)));
             }
 
             // Set proper ownership (www-data)
@@ -447,9 +466,11 @@ class GitService
      *
      * @param string $repoDir The repository directory path
      * @param string|null $branch Optional branch to pull (defaults to current branch)
+     * @param string|null $username GitHub username for HTTPS auth
+     * @param string|null $token GitHub personal access token for HTTPS auth
      * @return array Result with success status and message
      */
-    public function pullRepository(string $repoDir, ?string $branch = null): array
+    public function pullRepository(string $repoDir, ?string $branch = null, ?string $username = null, ?string $token = null): array
     {
         try {
             // Check if directory exists
@@ -478,16 +499,30 @@ class GitService
             exec(sprintf('cd %s && git remote get-url origin 2>&1', escapeshellarg($repoDir)), $remoteOutput, $remoteCode);
             $remoteUrl = ($remoteCode === 0 && !empty($remoteOutput[0])) ? trim($remoteOutput[0]) : '';
             $isSSH = (strpos($remoteUrl, 'git@') === 0 || strpos($remoteUrl, 'ssh://') === 0);
+            $isHTTPS = (strpos($remoteUrl, 'https://') === 0);
 
             // Build the git pull command
             if ($isSSH && $this->sshKeyExists()) {
+                // Use SSH key
                 $command = sprintf(
                     'cd %s && GIT_SSH_COMMAND="%s" git pull origin %s 2>&1',
                     escapeshellarg($repoDir),
                     $this->getSshCommand(),
                     escapeshellarg($branch)
                 );
+            } elseif ($isHTTPS && $username && $token) {
+                // Use HTTPS with username/token authentication
+                // Temporarily set the remote URL with credentials
+                $authUrl = $this->buildAuthUrl($remoteUrl, $username, $token);
+                $command = sprintf(
+                    'cd %s && git remote set-url origin %s && git pull origin %s 2>&1; git remote set-url origin %s',
+                    escapeshellarg($repoDir),
+                    escapeshellarg($authUrl),
+                    escapeshellarg($branch),
+                    escapeshellarg($remoteUrl) // Restore original URL without credentials
+                );
             } else {
+                // No authentication
                 $command = sprintf(
                     'cd %s && git pull origin %s 2>&1',
                     escapeshellarg($repoDir),
@@ -497,6 +532,11 @@ class GitService
 
             exec($command, $output, $returnCode);
             $outputText = implode("\n", $output);
+
+            // Remove any credentials from output for security
+            if ($token) {
+                $outputText = str_replace($token, '***TOKEN***', $outputText);
+            }
 
             if ($returnCode !== 0) {
                 return [
@@ -518,6 +558,28 @@ class GitService
                 'message' => 'Error: ' . $e->getMessage()
             ];
         }
+    }
+
+    /**
+     * Build authenticated HTTPS URL
+     *
+     * @param string $url Original HTTPS URL
+     * @param string $username GitHub username
+     * @param string $token GitHub personal access token
+     * @return string Authenticated URL
+     */
+    private function buildAuthUrl(string $url, string $username, string $token): string
+    {
+        // Convert https://github.com/user/repo.git to https://username:token@github.com/user/repo.git
+        if (preg_match('#^https://([^/]+)/(.+)$#', $url, $matches)) {
+            return sprintf('https://%s:%s@%s/%s',
+                urlencode($username),
+                urlencode($token),
+                $matches[1],
+                $matches[2]
+            );
+        }
+        return $url;
     }
 
     /**
