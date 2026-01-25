@@ -57,6 +57,169 @@ ob_start();
     </div>
 </div>
 
+<!-- System Setup Commands -->
+<div class="mb-6">
+    <div class="bg-gray-800 rounded-lg overflow-hidden">
+        <button type="button" onclick="toggleSetupCommands()" class="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-gray-700 transition">
+            <div class="flex items-center">
+                <svg class="w-5 h-5 text-green-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+                <span class="text-white font-medium">System Setup Commands</span>
+                <span class="ml-2 text-xs text-gray-400">(Run these in terminal for full functionality)</span>
+            </div>
+            <svg id="setupCommandsChevron" class="w-5 h-5 text-gray-400 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+        </button>
+        <div id="setupCommandsContent" class="hidden">
+            <div class="border-t border-gray-700 p-4">
+                <!-- Apache Control Permissions -->
+                <div class="mb-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <h4 class="text-sm font-medium text-green-400">Apache Control Permissions</h4>
+                        <button onclick="copyAllCommands('apache')" class="text-xs text-blue-400 hover:text-blue-300 flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path>
+                            </svg>
+                            Copy All
+                        </button>
+                    </div>
+                    <p class="text-xs text-gray-400 mb-2">Allow the web server to control Apache (restart/reload):</p>
+                    <div class="space-y-1" id="apache-commands">
+                        <div class="command-line group">
+                            <code class="text-green-300 text-xs">sudo rm -f /etc/sudoers.d/apache-control</code>
+                            <button onclick="copyCommand(this)" class="copy-btn">Copy</button>
+                        </div>
+                        <div class="command-line group">
+                            <code class="text-green-300 text-xs">echo "www-data ALL=(ALL) NOPASSWD: /usr/sbin/apache2ctl configtest" | sudo tee /etc/sudoers.d/apache-control</code>
+                            <button onclick="copyCommand(this)" class="copy-btn">Copy</button>
+                        </div>
+                        <div class="command-line group">
+                            <code class="text-green-300 text-xs">echo "www-data ALL=(ALL) NOPASSWD: /bin/systemctl restart apache2" | sudo tee -a /etc/sudoers.d/apache-control</code>
+                            <button onclick="copyCommand(this)" class="copy-btn">Copy</button>
+                        </div>
+                        <div class="command-line group">
+                            <code class="text-green-300 text-xs">echo "www-data ALL=(ALL) NOPASSWD: /bin/systemctl reload apache2" | sudo tee -a /etc/sudoers.d/apache-control</code>
+                            <button onclick="copyCommand(this)" class="copy-btn">Copy</button>
+                        </div>
+                        <div class="command-line group">
+                            <code class="text-green-300 text-xs">echo "www-data ALL=(ALL) NOPASSWD: /bin/systemctl is-active apache2" | sudo tee -a /etc/sudoers.d/apache-control</code>
+                            <button onclick="copyCommand(this)" class="copy-btn">Copy</button>
+                        </div>
+                        <div class="command-line group">
+                            <code class="text-green-300 text-xs">echo "www-data ALL=(ALL) NOPASSWD: /bin/systemctl status apache2" | sudo tee -a /etc/sudoers.d/apache-control</code>
+                            <button onclick="copyCommand(this)" class="copy-btn">Copy</button>
+                        </div>
+                        <div class="command-line group">
+                            <code class="text-green-300 text-xs">sudo chmod 440 /etc/sudoers.d/apache-control</code>
+                            <button onclick="copyCommand(this)" class="copy-btn">Copy</button>
+                        </div>
+                        <div class="command-line group">
+                            <code class="text-green-300 text-xs">sudo visudo -c</code>
+                            <button onclick="copyCommand(this)" class="copy-btn">Copy</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Git SSH Setup -->
+                <div class="mb-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <h4 class="text-sm font-medium text-green-400">Git SSH Key Setup (if using SSH URLs)</h4>
+                        <button onclick="copyAllCommands('git-ssh')" class="text-xs text-blue-400 hover:text-blue-300 flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path>
+                            </svg>
+                            Copy All
+                        </button>
+                    </div>
+                    <p class="text-xs text-gray-400 mb-2">Configure SSH for www-data to use git with SSH URLs:</p>
+                    <div class="space-y-1" id="git-ssh-commands">
+                        <div class="command-line group">
+                            <code class="text-green-300 text-xs">sudo mkdir -p /var/www/.ssh</code>
+                            <button onclick="copyCommand(this)" class="copy-btn">Copy</button>
+                        </div>
+                        <div class="command-line group">
+                            <code class="text-green-300 text-xs">sudo chown -R www-data:www-data /var/www/.ssh</code>
+                            <button onclick="copyCommand(this)" class="copy-btn">Copy</button>
+                        </div>
+                        <div class="command-line group">
+                            <code class="text-green-300 text-xs">sudo chmod 700 /var/www/.ssh</code>
+                            <button onclick="copyCommand(this)" class="copy-btn">Copy</button>
+                        </div>
+                        <div class="command-line group">
+                            <code class="text-green-300 text-xs">sudo -u www-data ssh-keygen -t ed25519 -C "server-manager" -f /var/www/.ssh/id_ed25519 -N ""</code>
+                            <button onclick="copyCommand(this)" class="copy-btn">Copy</button>
+                        </div>
+                        <div class="command-line group">
+                            <code class="text-green-300 text-xs">sudo cat /var/www/.ssh/id_ed25519.pub</code>
+                            <button onclick="copyCommand(this)" class="copy-btn">Copy</button>
+                        </div>
+                    </div>
+                    <p class="text-xs text-yellow-400 mt-2">After running, add the public key to your GitHub account's SSH keys.</p>
+                </div>
+
+                <!-- Directory Permissions -->
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <h4 class="text-sm font-medium text-green-400">Web Directory Permissions</h4>
+                        <button onclick="copyAllCommands('dir-perms')" class="text-xs text-blue-400 hover:text-blue-300 flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path>
+                            </svg>
+                            Copy All
+                        </button>
+                    </div>
+                    <p class="text-xs text-gray-400 mb-2">Ensure www-data can write to web directories:</p>
+                    <div class="space-y-1" id="dir-perms-commands">
+                        <div class="command-line group">
+                            <code class="text-green-300 text-xs">sudo chown -R www-data:www-data /var/www/html</code>
+                            <button onclick="copyCommand(this)" class="copy-btn">Copy</button>
+                        </div>
+                        <div class="command-line group">
+                            <code class="text-green-300 text-xs">sudo chmod -R 755 /var/www/html</code>
+                            <button onclick="copyCommand(this)" class="copy-btn">Copy</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.command-line {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(0,0,0,0.3);
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.375rem;
+    font-family: monospace;
+}
+.command-line code {
+    flex: 1;
+    overflow-x: auto;
+    white-space: nowrap;
+}
+.copy-btn {
+    margin-left: 0.5rem;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.625rem;
+    background: rgba(59, 130, 246, 0.2);
+    color: #93c5fd;
+    border-radius: 0.25rem;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+.group:hover .copy-btn {
+    opacity: 1;
+}
+.copy-btn:hover {
+    background: rgba(59, 130, 246, 0.4);
+}
+</style>
+
 <!-- Summary Cards -->
 <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
     <div class="bg-white rounded-lg shadow p-4">
@@ -188,7 +351,7 @@ ob_start();
 
 <!-- Applications Section -->
 <div class="bg-white rounded-lg shadow mb-6">
-    <div class="px-6 py-4 border-b border-gray-200">
+    <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
         <h3 class="text-lg font-bold text-gray-800 flex items-center">
             <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
@@ -196,6 +359,12 @@ ob_start();
             Discovered Applications
             <span class="ml-2 text-sm font-normal text-gray-500">/var/www/html</span>
         </h3>
+        <button type="button" onclick="showCloneModal()" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg font-medium transition flex items-center text-sm">
+            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            Clone Repository
+        </button>
     </div>
     <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200">
@@ -269,20 +438,31 @@ ob_start();
                         <?= formatBytes($dir['size']) ?>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <?php if ($dir['registered'] ?? false): ?>
-                        <button type="button" onclick="unregisterApp(<?= $dir['db_id'] ?>, '<?= e($dir['name']) ?>')"
-                                class="text-red-600 hover:text-red-800 text-sm font-medium">
-                            Unregister
-                        </button>
-                        <a href="/apps/<?= $dir['db_id'] ?>" class="ml-3 text-blue-600 hover:text-blue-800 text-sm font-medium">
-                            View
-                        </a>
-                        <?php else: ?>
-                        <button type="button" onclick="registerApp('<?= e($dir['name']) ?>')"
-                                class="text-green-600 hover:text-green-800 text-sm font-medium">
-                            Register
-                        </button>
-                        <?php endif; ?>
+                        <div class="flex items-center gap-2">
+                            <?php if ($dir['is_git_repo']): ?>
+                            <button type="button" onclick="gitPull('<?= e($dir['name']) ?>')"
+                                    class="text-orange-600 hover:text-orange-800 text-sm font-medium" title="Pull latest changes">
+                                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                                </svg>
+                                Pull
+                            </button>
+                            <?php endif; ?>
+                            <?php if ($dir['registered'] ?? false): ?>
+                            <button type="button" onclick="unregisterApp(<?= $dir['db_id'] ?>, '<?= e($dir['name']) ?>')"
+                                    class="text-red-600 hover:text-red-800 text-sm font-medium">
+                                Unregister
+                            </button>
+                            <a href="/apps/<?= $dir['db_id'] ?>" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                                View
+                            </a>
+                            <?php else: ?>
+                            <button type="button" onclick="registerApp('<?= e($dir['name']) ?>')"
+                                    class="text-green-600 hover:text-green-800 text-sm font-medium">
+                                Register
+                            </button>
+                            <?php endif; ?>
+                        </div>
                     </td>
                 </tr>
                 <?php endforeach; ?>
@@ -407,21 +587,36 @@ ob_start();
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
                 <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Domain</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Provider</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Issuer</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expires</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valid</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
                 </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
                 <?php if (empty($discovered['ssl_certificates'])): ?>
                 <tr>
-                    <td colspan="5" class="px-6 py-4 text-center text-gray-500">No SSL certificates found</td>
+                    <td colspan="7" class="px-6 py-4 text-center text-gray-500">No SSL certificates found</td>
                 </tr>
                 <?php else: ?>
                 <?php foreach ($discovered['ssl_certificates'] as $cert): ?>
-                <tr class="hover:bg-gray-50">
+                <tr class="hover:bg-gray-50 <?= ($cert['registered'] ?? false) ? 'bg-green-50' : 'bg-yellow-50' ?>" id="ssl-row-<?= e($cert['domain']) ?>">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <?php if ($cert['registered'] ?? false): ?>
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+                            Registered
+                        </span>
+                        <?php else: ?>
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
+                            Not Registered
+                        </span>
+                        <?php endif; ?>
+                    </td>
                     <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">
                         <?= e($cert['domain']) ?>
                     </td>
@@ -457,6 +652,22 @@ ob_start();
                         </span>
                         <?php else: ?>
                         <span class="text-red-600">Invalid</span>
+                        <?php endif; ?>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <?php if ($cert['registered'] ?? false): ?>
+                        <button type="button" onclick="unregisterSSL(<?= $cert['db_id'] ?>, '<?= e($cert['domain']) ?>')"
+                                class="text-red-600 hover:text-red-800 text-sm font-medium">
+                            Unregister
+                        </button>
+                        <a href="/ssl/<?= $cert['db_id'] ?>" class="ml-3 text-blue-600 hover:text-blue-800 text-sm font-medium">
+                            View
+                        </a>
+                        <?php else: ?>
+                        <button type="button" onclick="registerSSL('<?= e($cert['domain']) ?>', '<?= e($cert['provider']) ?>', '<?= e($cert['cert_file'] ?? '') ?>', '<?= e($cert['key_file'] ?? '') ?>', '<?= e($cert['chain_file'] ?? '') ?>', '<?= e($cert['issued_at'] ?? '') ?>', '<?= e($cert['expires_at'] ?? '') ?>')"
+                                class="text-green-600 hover:text-green-800 text-sm font-medium">
+                            Register
+                        </button>
                         <?php endif; ?>
                     </td>
                 </tr>
@@ -587,6 +798,62 @@ ob_start();
 
 <script>
 const csrfToken = '<?= $_SESSION['csrf_token'] ?? '' ?>';
+
+// Setup Commands Toggle
+function toggleSetupCommands() {
+    const content = document.getElementById('setupCommandsContent');
+    const chevron = document.getElementById('setupCommandsChevron');
+
+    if (content.classList.contains('hidden')) {
+        content.classList.remove('hidden');
+        chevron.classList.add('rotate-180');
+    } else {
+        content.classList.add('hidden');
+        chevron.classList.remove('rotate-180');
+    }
+}
+
+// Copy single command
+function copyCommand(btn) {
+    const code = btn.parentElement.querySelector('code');
+    const text = code.textContent;
+
+    navigator.clipboard.writeText(text).then(() => {
+        const originalText = btn.textContent;
+        btn.textContent = 'Copied!';
+        btn.style.background = 'rgba(34, 197, 94, 0.3)';
+        btn.style.color = '#86efac';
+
+        setTimeout(() => {
+            btn.textContent = originalText;
+            btn.style.background = '';
+            btn.style.color = '';
+        }, 1500);
+    }).catch(err => {
+        SwalUtil.error('Failed to copy: ' + err.message);
+    });
+}
+
+// Copy all commands in a section
+function copyAllCommands(section) {
+    const container = document.getElementById(section + '-commands');
+    const codes = container.querySelectorAll('code');
+    const commands = Array.from(codes).map(c => c.textContent).join('\n');
+
+    navigator.clipboard.writeText(commands).then(() => {
+        Swal.fire({
+            icon: 'success',
+            title: 'Commands Copied!',
+            text: `${codes.length} commands copied to clipboard`,
+            timer: 1500,
+            showConfirmButton: false,
+            toast: true,
+            position: 'top-end'
+        });
+    }).catch(err => {
+        SwalUtil.error('Failed to copy: ' + err.message);
+    });
+}
 
 function registerApp(name) {
     SwalUtil.confirm({
@@ -836,6 +1103,391 @@ document.addEventListener('keydown', function(e) {
         Swal.close();
     }
 });
+
+// SSL Certificate Registration
+function registerSSL(domain, provider, certFile, keyFile, chainFile, issuedAt, expiresAt) {
+    SwalUtil.confirm({
+        title: 'Register SSL Certificate?',
+        text: `Register the SSL certificate for "${domain}" in the system?`,
+        icon: 'question',
+        confirmText: 'Yes, register it',
+        confirmColor: '#10b981'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            SwalUtil.loading('Registering SSL certificate...');
+            const body = new URLSearchParams({
+                domain: domain,
+                provider: provider,
+                cert_file: certFile,
+                key_file: keyFile,
+                chain_file: chainFile,
+                issued_at: issuedAt,
+                expires_at: expiresAt,
+                csrf_token: csrfToken
+            });
+            fetch('/discovery/register-ssl', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: body.toString()
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Registered!',
+                        text: data.message,
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => location.reload());
+                } else {
+                    SwalUtil.error(data.message);
+                }
+            })
+            .catch(err => SwalUtil.error('Error: ' + err.message));
+        }
+    });
+}
+
+function unregisterSSL(id, domain) {
+    SwalUtil.confirm({
+        title: 'Unregister SSL Certificate?',
+        text: `Remove "${domain}" SSL certificate from management? The certificate files will remain intact.`,
+        icon: 'warning',
+        confirmText: 'Yes, unregister',
+        confirmColor: '#dc2626'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            SwalUtil.loading('Unregistering...');
+            fetch('/discovery/unregister-ssl', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `id=${id}&csrf_token=${encodeURIComponent(csrfToken)}`
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Unregistered!',
+                        text: data.message,
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => location.reload());
+                } else {
+                    SwalUtil.error(data.message);
+                }
+            })
+            .catch(err => SwalUtil.error('Error: ' + err.message));
+        }
+    });
+}
+
+// Cleanup orphaned entries
+function cleanupOrphaned() {
+    SwalUtil.confirm({
+        title: 'Cleanup Database?',
+        html: `<p>This will remove database entries for resources that no longer exist on the server.</p>
+               <p class="mt-2 text-sm text-gray-500">Useful after server migration or manual cleanup of files.</p>`,
+        icon: 'warning',
+        confirmText: 'Yes, clean up',
+        confirmColor: '#f97316'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            SwalUtil.loading('Scanning and cleaning up...');
+            fetch('/discovery/cleanup', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `csrf_token=${encodeURIComponent(csrfToken)}`
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    const results = data.data;
+                    let html = '<div class="text-left">';
+
+                    if (results.apps.removed > 0) {
+                        html += `<p class="mb-2"><strong>Apps removed:</strong> ${results.apps.removed}</p>`;
+                        if (results.apps.items.length > 0) {
+                            html += `<ul class="text-sm text-gray-600 ml-4 mb-2">${results.apps.items.map(i => `<li>- ${i}</li>`).join('')}</ul>`;
+                        }
+                    }
+                    if (results.domains.removed > 0) {
+                        html += `<p class="mb-2"><strong>Domains removed:</strong> ${results.domains.removed}</p>`;
+                        if (results.domains.items.length > 0) {
+                            html += `<ul class="text-sm text-gray-600 ml-4 mb-2">${results.domains.items.map(i => `<li>- ${i}</li>`).join('')}</ul>`;
+                        }
+                    }
+                    if (results.databases.removed > 0) {
+                        html += `<p class="mb-2"><strong>Databases removed:</strong> ${results.databases.removed}</p>`;
+                        if (results.databases.items.length > 0) {
+                            html += `<ul class="text-sm text-gray-600 ml-4 mb-2">${results.databases.items.map(i => `<li>- ${i}</li>`).join('')}</ul>`;
+                        }
+                    }
+                    if (results.ssl.removed > 0) {
+                        html += `<p class="mb-2"><strong>SSL Certs removed:</strong> ${results.ssl.removed}</p>`;
+                        if (results.ssl.items.length > 0) {
+                            html += `<ul class="text-sm text-gray-600 ml-4 mb-2">${results.ssl.items.map(i => `<li>- ${i}</li>`).join('')}</ul>`;
+                        }
+                    }
+
+                    const totalRemoved = results.apps.removed + results.domains.removed + results.databases.removed + results.ssl.removed;
+                    if (totalRemoved === 0) {
+                        html = '<p>No orphaned entries found. Your database is clean!</p>';
+                    }
+
+                    html += '</div>';
+
+                    Swal.fire({
+                        icon: totalRemoved > 0 ? 'success' : 'info',
+                        title: data.message,
+                        html: html,
+                        confirmButtonText: 'OK'
+                    }).then(() => {
+                        if (totalRemoved > 0) location.reload();
+                    });
+                } else {
+                    SwalUtil.error(data.message);
+                }
+            })
+            .catch(err => SwalUtil.error('Error: ' + err.message));
+        }
+    });
+}
+
+// Apache Controls
+function checkApacheStatus() {
+    fetch('/discovery/apache-status')
+        .then(r => r.json())
+        .then(data => {
+            const statusEl = document.getElementById('apacheStatus');
+            if (data.success && data.data.running) {
+                statusEl.innerHTML = '<span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span> Apache Running';
+                statusEl.className = 'inline-flex items-center px-3 py-1 rounded-full text-sm bg-green-100 text-green-800';
+            } else {
+                statusEl.innerHTML = '<span class="w-2 h-2 bg-red-500 rounded-full mr-2"></span> Apache Stopped';
+                statusEl.className = 'inline-flex items-center px-3 py-1 rounded-full text-sm bg-red-100 text-red-800';
+            }
+        })
+        .catch(() => {
+            const statusEl = document.getElementById('apacheStatus');
+            statusEl.innerHTML = '<span class="w-2 h-2 bg-gray-400 rounded-full mr-2"></span> Unknown';
+            statusEl.className = 'inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-600';
+        });
+}
+
+function reloadApache() {
+    SwalUtil.confirm({
+        title: 'Reload Apache?',
+        text: 'This will gracefully reload Apache configuration without dropping connections.',
+        icon: 'question',
+        confirmText: 'Yes, reload',
+        confirmColor: '#3b82f6'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            SwalUtil.loading('Reloading Apache...');
+            fetch('/discovery/reload-apache', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `csrf_token=${encodeURIComponent(csrfToken)}`
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Apache Reloaded',
+                        text: data.message,
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                    checkApacheStatus();
+                } else {
+                    SwalUtil.error(data.message, 'Reload Failed');
+                }
+            })
+            .catch(err => SwalUtil.error('Error: ' + err.message));
+        }
+    });
+}
+
+function restartApache() {
+    SwalUtil.confirm({
+        title: 'Restart Apache?',
+        html: `<p>This will fully restart Apache service.</p>
+               <p class="mt-2 text-sm text-yellow-600">Active connections may be briefly interrupted.</p>`,
+        icon: 'warning',
+        confirmText: 'Yes, restart',
+        confirmColor: '#dc2626'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            SwalUtil.loading('Restarting Apache...');
+            fetch('/discovery/restart-apache', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `csrf_token=${encodeURIComponent(csrfToken)}`
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Apache Restarted',
+                        text: data.message,
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                    checkApacheStatus();
+                } else {
+                    SwalUtil.error(data.message, 'Restart Failed');
+                }
+            })
+            .catch(err => SwalUtil.error('Error: ' + err.message));
+        }
+    });
+}
+
+// Check Apache status on page load
+document.addEventListener('DOMContentLoaded', function() {
+    checkApacheStatus();
+});
+
+// Git Clone Modal
+function showCloneModal() {
+    Swal.fire({
+        title: 'Clone Repository',
+        html: `
+            <div class="text-left">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Repository URL *</label>
+                    <input type="text" id="clone-repo-url" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                           placeholder="https://github.com/user/repo.git or git@github.com:user/repo.git">
+                    <p class="text-xs text-gray-500 mt-1">Supports HTTPS and SSH URLs</p>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Application Name *</label>
+                    <input type="text" id="clone-app-name" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                           placeholder="my-app">
+                    <p class="text-xs text-gray-500 mt-1">Will be created in /var/www/html/</p>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Branch (optional)</label>
+                    <input type="text" id="clone-branch" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                           placeholder="main">
+                    <p class="text-xs text-gray-500 mt-1">Leave empty for default branch</p>
+                </div>
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Clone',
+        confirmButtonColor: '#10b981',
+        cancelButtonText: 'Cancel',
+        width: '500px',
+        preConfirm: () => {
+            const repoUrl = document.getElementById('clone-repo-url').value.trim();
+            const appName = document.getElementById('clone-app-name').value.trim();
+            const branch = document.getElementById('clone-branch').value.trim();
+
+            if (!repoUrl) {
+                Swal.showValidationMessage('Repository URL is required');
+                return false;
+            }
+            if (!appName) {
+                Swal.showValidationMessage('Application name is required');
+                return false;
+            }
+            if (!/^[a-zA-Z0-9_-]+$/.test(appName)) {
+                Swal.showValidationMessage('Application name can only contain letters, numbers, hyphens, and underscores');
+                return false;
+            }
+
+            return { repoUrl, appName, branch };
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            gitClone(result.value.repoUrl, result.value.appName, result.value.branch);
+        }
+    });
+}
+
+function gitClone(repoUrl, appName, branch) {
+    SwalUtil.loading('Cloning repository... This may take a moment.');
+
+    const body = new URLSearchParams({
+        repo_url: repoUrl,
+        app_name: appName,
+        branch: branch || '',
+        csrf_token: csrfToken
+    });
+
+    fetch('/discovery/git-clone', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: body.toString()
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Repository Cloned!',
+                html: `<p>${data.message}</p>
+                       <p class="text-sm text-gray-500 mt-2">Path: ${data.data?.path || '/var/www/html/' + appName}</p>
+                       ${data.data?.output ? '<pre class="text-xs bg-gray-100 p-2 mt-2 rounded max-h-32 overflow-auto text-left">' + escapeHtml(data.data.output) + '</pre>' : ''}`,
+                confirmButtonText: 'OK'
+            }).then(() => location.reload());
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Clone Failed',
+                html: `<p>${escapeHtml(data.message)}</p>`,
+                confirmButtonColor: '#dc2626'
+            });
+        }
+    })
+    .catch(err => SwalUtil.error('Error: ' + err.message));
+}
+
+function gitPull(appName) {
+    SwalUtil.confirm({
+        title: 'Pull Latest Changes?',
+        text: `Pull the latest changes for "${appName}" from the remote repository?`,
+        icon: 'question',
+        confirmText: 'Yes, pull',
+        confirmColor: '#f97316'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            SwalUtil.loading('Pulling latest changes...');
+
+            fetch('/discovery/git-pull', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `app_name=${encodeURIComponent(appName)}&csrf_token=${encodeURIComponent(csrfToken)}`
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Pull Successful!',
+                        html: `<p>${data.message}</p>
+                               ${data.data?.branch ? '<p class="text-sm text-gray-500">Branch: ' + escapeHtml(data.data.branch) + '</p>' : ''}
+                               ${data.data?.output ? '<pre class="text-xs bg-gray-100 p-2 mt-2 rounded max-h-32 overflow-auto text-left">' + escapeHtml(data.data.output) + '</pre>' : ''}`,
+                        confirmButtonText: 'OK'
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Pull Failed',
+                        html: `<p>${escapeHtml(data.message)}</p>`,
+                        confirmButtonColor: '#dc2626'
+                    });
+                }
+            })
+            .catch(err => SwalUtil.error('Error: ' + err.message));
+        }
+    });
+}
 </script>
 
 <?php

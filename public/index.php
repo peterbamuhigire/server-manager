@@ -142,6 +142,7 @@ $routes = [
         '/discovery/databases' => ['DiscoveryController', 'databases', ['auth', 'root']],
         '/discovery/view-config' => ['DiscoveryController', 'viewConfig', ['auth', 'root']],
         '/discovery/apache-status' => ['DiscoveryController', 'apacheStatus', ['auth', 'root']],
+        '/discovery/git-status' => ['DiscoveryController', 'gitStatus', ['auth', 'root']],
     ],
     'POST' => [
         '/login' => ['AuthController', 'login', []],
@@ -217,6 +218,8 @@ $routes = [
         '/discovery/cleanup' => ['DiscoveryController', 'cleanup', ['auth', 'root', 'csrf']],
         '/discovery/restart-apache' => ['DiscoveryController', 'restartApache', ['auth', 'root', 'csrf']],
         '/discovery/reload-apache' => ['DiscoveryController', 'reloadApache', ['auth', 'root', 'csrf']],
+        '/discovery/git-clone' => ['DiscoveryController', 'gitClone', ['auth', 'root', 'csrf']],
+        '/discovery/git-pull' => ['DiscoveryController', 'gitPull', ['auth', 'root', 'csrf']],
     ],
     'DELETE' => [
         '/apps/{id}' => ['AppController', 'destroy', ['auth', 'csrf']],

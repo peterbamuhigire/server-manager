@@ -2,6 +2,7 @@
 
 require_once __DIR__ . '/Controller.php';
 require_once __DIR__ . '/../Services/ServerDiscoveryService.php';
+require_once __DIR__ . '/../Services/GitService.php';
 
 /**
  * Discovery Controller
@@ -501,5 +502,118 @@ class DiscoveryController extends Controller
         $status = $this->discoveryService->getApacheStatus();
 
         json_success('Apache status retrieved', $status);
+    }
+
+    /**
+     * Clone a Git repository into an app directory
+     */
+    public function gitClone(): void
+    {
+        $this->requireAuth();
+        $this->requireRoot();
+        $this->verifyCsrf();
+
+        $repoUrl = $_POST['repo_url'] ?? '';
+        $appName = $_POST['app_name'] ?? '';
+        $branch = $_POST['branch'] ?? null;
+
+        if (empty($repoUrl)) {
+            json_error('Repository URL is required');
+            return;
+        }
+
+        if (empty($appName)) {
+            json_error('Application name is required');
+            return;
+        }
+
+        // Sanitize app name
+        $appName = preg_replace('/[^a-zA-Z0-9_-]/', '', $appName);
+        if (empty($appName)) {
+            json_error('Invalid application name');
+            return;
+        }
+
+        $webRoot = config('paths.web_root', '/var/www') . '/html';
+        $targetDir = $webRoot . '/' . $appName;
+
+        $gitService = new GitService();
+        $result = $gitService->cloneRepository($repoUrl, $targetDir, $branch);
+
+        if ($result['success']) {
+            json_success($result['message'], [
+                'path' => $result['path'] ?? $targetDir,
+                'output' => $result['output'] ?? ''
+            ]);
+        } else {
+            json_error($result['message']);
+        }
+    }
+
+    /**
+     * Pull updates for a Git repository
+     */
+    public function gitPull(): void
+    {
+        $this->requireAuth();
+        $this->requireRoot();
+        $this->verifyCsrf();
+
+        $appName = $_POST['app_name'] ?? '';
+        $branch = $_POST['branch'] ?? null;
+
+        if (empty($appName)) {
+            json_error('Application name is required');
+            return;
+        }
+
+        $webRoot = config('paths.web_root', '/var/www') . '/html';
+        $repoDir = $webRoot . '/' . $appName;
+
+        if (!is_dir($repoDir)) {
+            json_error('Application directory not found');
+            return;
+        }
+
+        $gitService = new GitService();
+        $result = $gitService->pullRepository($repoDir, $branch);
+
+        if ($result['success']) {
+            json_success($result['message'], [
+                'output' => $result['output'] ?? '',
+                'branch' => $result['branch'] ?? ''
+            ]);
+        } else {
+            json_error($result['message']);
+        }
+    }
+
+    /**
+     * Get Git repository status for an app
+     */
+    public function gitStatus(): void
+    {
+        $this->requireAuth();
+        $this->requireRoot();
+
+        $appName = $_GET['app'] ?? '';
+
+        if (empty($appName)) {
+            json_error('Application name is required');
+            return;
+        }
+
+        $webRoot = config('paths.web_root', '/var/www') . '/html';
+        $repoDir = $webRoot . '/' . $appName;
+
+        if (!is_dir($repoDir)) {
+            json_error('Application directory not found');
+            return;
+        }
+
+        $gitService = new GitService();
+        $status = $gitService->getRepoStatus($repoDir);
+
+        json_success('Repository status retrieved', $status);
     }
 }

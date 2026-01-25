@@ -338,4 +338,241 @@ class GitService
 
         return null;
     }
+
+    /**
+     * Get the SSH command for Git operations
+     *
+     * @return string
+     */
+    private function getSshCommand(): string
+    {
+        if ($this->sshKeyExists()) {
+            return sprintf(
+                'ssh -i "%s" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o IdentitiesOnly=yes',
+                $this->privateKeyPath
+            );
+        }
+        return 'ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null';
+    }
+
+    /**
+     * Clone a repository into a target directory
+     *
+     * @param string $repoUrl The repository URL (HTTPS or SSH)
+     * @param string $targetDir The target directory path
+     * @param string|null $branch Optional branch to clone
+     * @return array Result with success status and message
+     */
+    public function cloneRepository(string $repoUrl, string $targetDir, ?string $branch = null): array
+    {
+        try {
+            // Check if target directory already exists and is not empty
+            if (is_dir($targetDir)) {
+                $files = scandir($targetDir);
+                $files = array_diff($files, ['.', '..']);
+                if (!empty($files)) {
+                    return [
+                        'success' => false,
+                        'message' => 'Target directory is not empty. Please use pull to update existing repository.'
+                    ];
+                }
+            } else {
+                // Create the directory
+                if (!mkdir($targetDir, 0755, true)) {
+                    return [
+                        'success' => false,
+                        'message' => 'Failed to create target directory.'
+                    ];
+                }
+            }
+
+            // Build the git clone command
+            $branchOption = $branch ? sprintf(' -b %s', escapeshellarg($branch)) : '';
+
+            // Determine if using SSH or HTTPS
+            $isSSH = (strpos($repoUrl, 'git@') === 0 || strpos($repoUrl, 'ssh://') === 0);
+
+            if ($isSSH && $this->sshKeyExists()) {
+                $command = sprintf(
+                    'GIT_SSH_COMMAND="%s" git clone%s %s %s 2>&1',
+                    $this->getSshCommand(),
+                    $branchOption,
+                    escapeshellarg($repoUrl),
+                    escapeshellarg($targetDir)
+                );
+            } else {
+                $command = sprintf(
+                    'git clone%s %s %s 2>&1',
+                    $branchOption,
+                    escapeshellarg($repoUrl),
+                    escapeshellarg($targetDir)
+                );
+            }
+
+            exec($command, $output, $returnCode);
+            $outputText = implode("\n", $output);
+
+            if ($returnCode !== 0) {
+                // Clean up empty directory on failure
+                if (is_dir($targetDir) && count(scandir($targetDir)) <= 2) {
+                    rmdir($targetDir);
+                }
+
+                return [
+                    'success' => false,
+                    'message' => 'Git clone failed: ' . $outputText
+                ];
+            }
+
+            // Set proper ownership (www-data)
+            exec(sprintf('chown -R www-data:www-data %s 2>&1', escapeshellarg($targetDir)));
+
+            return [
+                'success' => true,
+                'message' => 'Repository cloned successfully',
+                'output' => $outputText,
+                'path' => $targetDir
+            ];
+
+        } catch (Exception $e) {
+            return [
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ];
+        }
+    }
+
+    /**
+     * Pull updates for an existing repository
+     *
+     * @param string $repoDir The repository directory path
+     * @param string|null $branch Optional branch to pull (defaults to current branch)
+     * @return array Result with success status and message
+     */
+    public function pullRepository(string $repoDir, ?string $branch = null): array
+    {
+        try {
+            // Check if directory exists
+            if (!is_dir($repoDir)) {
+                return [
+                    'success' => false,
+                    'message' => 'Directory does not exist.'
+                ];
+            }
+
+            // Check if it's a git repository
+            if (!is_dir($repoDir . '/.git')) {
+                return [
+                    'success' => false,
+                    'message' => 'Directory is not a git repository.'
+                ];
+            }
+
+            // Get current branch if not specified
+            if (!$branch) {
+                exec(sprintf('cd %s && git rev-parse --abbrev-ref HEAD 2>&1', escapeshellarg($repoDir)), $branchOutput, $branchCode);
+                $branch = ($branchCode === 0 && !empty($branchOutput[0])) ? trim($branchOutput[0]) : 'main';
+            }
+
+            // Check for remote URL to determine SSH vs HTTPS
+            exec(sprintf('cd %s && git remote get-url origin 2>&1', escapeshellarg($repoDir)), $remoteOutput, $remoteCode);
+            $remoteUrl = ($remoteCode === 0 && !empty($remoteOutput[0])) ? trim($remoteOutput[0]) : '';
+            $isSSH = (strpos($remoteUrl, 'git@') === 0 || strpos($remoteUrl, 'ssh://') === 0);
+
+            // Build the git pull command
+            if ($isSSH && $this->sshKeyExists()) {
+                $command = sprintf(
+                    'cd %s && GIT_SSH_COMMAND="%s" git pull origin %s 2>&1',
+                    escapeshellarg($repoDir),
+                    $this->getSshCommand(),
+                    escapeshellarg($branch)
+                );
+            } else {
+                $command = sprintf(
+                    'cd %s && git pull origin %s 2>&1',
+                    escapeshellarg($repoDir),
+                    escapeshellarg($branch)
+                );
+            }
+
+            exec($command, $output, $returnCode);
+            $outputText = implode("\n", $output);
+
+            if ($returnCode !== 0) {
+                return [
+                    'success' => false,
+                    'message' => 'Git pull failed: ' . $outputText
+                ];
+            }
+
+            return [
+                'success' => true,
+                'message' => 'Repository updated successfully',
+                'output' => $outputText,
+                'branch' => $branch
+            ];
+
+        } catch (Exception $e) {
+            return [
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ];
+        }
+    }
+
+    /**
+     * Get repository status
+     *
+     * @param string $repoDir The repository directory path
+     * @return array Repository status info
+     */
+    public function getRepoStatus(string $repoDir): array
+    {
+        $status = [
+            'is_git_repo' => false,
+            'branch' => null,
+            'remote_url' => null,
+            'has_changes' => false,
+            'ahead' => 0,
+            'behind' => 0,
+            'last_commit' => null
+        ];
+
+        if (!is_dir($repoDir . '/.git')) {
+            return $status;
+        }
+
+        $status['is_git_repo'] = true;
+
+        // Get current branch
+        exec(sprintf('cd %s && git rev-parse --abbrev-ref HEAD 2>&1', escapeshellarg($repoDir)), $branchOutput, $branchCode);
+        if ($branchCode === 0 && !empty($branchOutput[0])) {
+            $status['branch'] = trim($branchOutput[0]);
+        }
+
+        // Get remote URL
+        exec(sprintf('cd %s && git remote get-url origin 2>&1', escapeshellarg($repoDir)), $remoteOutput, $remoteCode);
+        if ($remoteCode === 0 && !empty($remoteOutput[0])) {
+            $status['remote_url'] = trim($remoteOutput[0]);
+        }
+
+        // Check for uncommitted changes
+        exec(sprintf('cd %s && git status --porcelain 2>&1', escapeshellarg($repoDir)), $statusOutput, $statusCode);
+        $status['has_changes'] = ($statusCode === 0 && !empty($statusOutput));
+
+        // Get last commit info
+        exec(sprintf('cd %s && git log -1 --format="%%h|%%s|%%ar" 2>&1', escapeshellarg($repoDir)), $logOutput, $logCode);
+        if ($logCode === 0 && !empty($logOutput[0])) {
+            $parts = explode('|', $logOutput[0]);
+            if (count($parts) >= 3) {
+                $status['last_commit'] = [
+                    'hash' => $parts[0],
+                    'message' => $parts[1],
+                    'time_ago' => $parts[2]
+                ];
+            }
+        }
+
+        return $status;
+    }
 }

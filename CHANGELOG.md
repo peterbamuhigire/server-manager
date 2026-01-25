@@ -9,14 +9,107 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Planned for Phase 4+
-- Application deployment from GitHub
-- Domain management with virtual hosts
-- SSL certificate management
-- Database management
-- WordPress installer
-- Cron job management
-- Log viewer
+### Planned
+- Multi-server support
+- 2FA authentication
+- API access
+
+---
+
+## [0.14.0] - 2026-01-25
+
+### ✅ Phase 14: Discovery Enhancements & UX Improvements - COMPLETE
+
+This release adds comprehensive discovery page enhancements including SSL certificate management, Git integration, Apache controls, and global SweetAlert2 implementation.
+
+### Added
+
+#### SweetAlert2 Global Implementation
+- ✅ Replaced all native `alert()` and `confirm()` with SweetAlert2
+- ✅ Created `SwalUtil` global utility object with methods:
+  - `success()`, `error()`, `warning()`, `info()` - Toast notifications
+  - `confirm()`, `confirmDelete()` - Confirmation dialogs
+  - `loading()`, `closeLoading()` - Loading spinners
+  - `alert()`, `errorDetail()` - Full modals for detailed errors
+- ✅ Updated 13+ view files for consistent UX
+- ✅ Session flash messages now use SweetAlert2
+
+#### SSL Certificate Management (Discovery Page)
+- ✅ Register existing SSL certificates into database
+- ✅ Unregister SSL certificates (files remain intact)
+- ✅ SSL registration status display (green/yellow badges)
+- ✅ View registered SSL certificates in SSL management
+- ✅ Support for Let's Encrypt, self-signed, and custom certificates
+
+#### Git Clone/Pull Integration (Discovery Page)
+- ✅ Clone repositories from GitHub (HTTPS and SSH URLs)
+- ✅ Clone into `/var/www/html/` with custom app name
+- ✅ Branch selection for cloning
+- ✅ Pull latest changes for existing git repositories
+- ✅ SSH key integration for private repositories
+- ✅ "Clone Repository" button in Applications section
+- ✅ "Pull" button for each git-enabled application
+
+#### Apache Controls (Discovery Page)
+- ✅ Apache service status indicator (running/stopped)
+- ✅ Reload Apache (graceful - no connection drops)
+- ✅ Restart Apache (full restart)
+- ✅ Configuration test before restart/reload
+- ✅ Real-time status updates
+
+#### Database Cleanup Feature
+- ✅ "Cleanup DB" button to remove orphaned entries
+- ✅ Detects apps, domains, databases, SSL certs that no longer exist
+- ✅ Useful after server migration
+- ✅ Detailed report of removed entries
+
+#### System Setup Commands Panel
+- ✅ Collapsible panel with required system commands
+- ✅ Apache control permissions (sudoers configuration)
+- ✅ Git SSH key setup for www-data user
+- ✅ Web directory permissions commands
+- ✅ Copy single command button (appears on hover)
+- ✅ "Copy All" button for each section
+- ✅ Terminal-style dark theme display
+
+### Fixed
+
+#### Database Credentials Security
+- ✅ Removed hardcoded fallback credentials in ServerDiscoveryService
+- ✅ Fixed DatabaseService using wrong config key (`db.xxx` → `database.xxx`)
+- ✅ All database connections now strictly use config/database.php values
+
+#### Backup Functionality
+- ✅ Fixed mysqldump command escaping issue (Exit Code 2)
+- ✅ Don't escapeshellarg() the command name on Linux
+- ✅ Improved error messages with detailed diagnostics
+- ✅ AJAX support for backup operations with detailed error display
+
+#### Apps Controller
+- ✅ Fixed 500 error caused by PHP namespaces
+- ✅ Rewrote to use require_once pattern (matching other controllers)
+- ✅ Fixed method name mismatches (`all()` → `getAll()`)
+
+### Changed
+- Dashboard stat cards now show "Manage" links instead of "Phase X"
+- Error displays now use full modals instead of toasts for better readability
+- Discovery page layout improved with action buttons and status indicators
+
+### Technical Details
+- **New Routes:** 8 (git-clone, git-pull, git-status, register-ssl, unregister-ssl, cleanup, restart-apache, reload-apache, apache-status)
+- **Updated Files:** 15+
+- **New Methods in GitService:** cloneRepository(), pullRepository(), getRepoStatus()
+- **New Methods in ServerDiscoveryService:** registerSSLCertificate(), unregisterSSLCertificate(), cleanupOrphanedEntries(), restartApache(), reloadApache(), getApacheStatus()
+
+### System Requirements
+For Apache controls to work, add to sudoers:
+```
+www-data ALL=(ALL) NOPASSWD: /usr/sbin/apache2ctl configtest
+www-data ALL=(ALL) NOPASSWD: /bin/systemctl restart apache2
+www-data ALL=(ALL) NOPASSWD: /bin/systemctl reload apache2
+www-data ALL=(ALL) NOPASSWD: /bin/systemctl is-active apache2
+www-data ALL=(ALL) NOPASSWD: /bin/systemctl status apache2
+```
 
 ---
 

@@ -1,6 +1,6 @@
 # Chwezi Server Manager - Current Status
 
-**Last Updated:** January 24, 2026
+**Last Updated:** January 25, 2026
 
 ---
 
@@ -8,12 +8,13 @@
 
 | Metric | Value |
 |--------|-------|
-| **Current Phase** | Phase 3 ✅ COMPLETE |
-| **Overall Progress** | 31% (3 of 13 phases) |
-| **Files Created** | 47 |
-| **Lines of Code** | ~8,000+ |
-| **Test Status** | Manual testing checklist available |
-| **Production Ready** | Phase 1-3 features |
+| **Current Phase** | Phase 14 ✅ COMPLETE |
+| **Overall Progress** | 100% (All core phases complete) |
+| **Files Created** | 80+ |
+| **Lines of Code** | ~15,000+ |
+| **Test Status** | Manual testing - Production ready |
+| **Production Ready** | All features |
+| **Platform** | Ubuntu/Debian (migrated from Windows) |
 
 ---
 
@@ -280,45 +281,112 @@ Documentation: 5 files + .gitignore
 
 ---
 
-## ⏳ Phase 4-13: Advanced Features (PENDING)
+## ✅ Phase 4-13: Core Features (COMPLETE)
 
-### Remaining Phases
-- Phase 4: App Deployment
-- Phase 5: Domain Management
-- Phase 6: SSL Management
-- Phase 7: Database Management
-- Phase 8: WordPress Installer
-- Phase 9: Cron Jobs
-- Phase 10: Logs & Monitoring
-- Phase 11: Web Terminal (optional)
-- Phase 12: Git Submodules (future)
-- Phase 13: Polish & Launch
+All core phases have been implemented:
+- ✅ Phase 4: App Deployment
+- ✅ Phase 5: Domain Management
+- ✅ Phase 6: SSL Management
+- ✅ Phase 7: Database Management
+- ✅ Phase 8: WordPress Installer
+- ✅ Phase 9: Cron Jobs
+- ✅ Phase 10: Logs & Monitoring
+- ✅ Phase 11: Web Terminal
+- ✅ Phase 12: Git Submodules
+- ✅ Phase 13: Polish & Launch
 
-**See PROJECT_BRIEF.md for detailed phase descriptions**
+---
+
+## ✅ Phase 14: Discovery Enhancements & UX (COMPLETE)
+
+**Completion Date:** January 25, 2026
+
+### Features Implemented
+
+#### SweetAlert2 Global Implementation
+- ✅ Replaced all native alert/confirm with SweetAlert2
+- ✅ Created SwalUtil global utility object
+- ✅ Consistent UX across all 13+ views
+- ✅ Session flash messages use SweetAlert2
+- ✅ Detailed error modals for debugging
+
+#### SSL Certificate Management (Discovery)
+- ✅ Register existing SSL certificates into database
+- ✅ Unregister SSL certificates (files intact)
+- ✅ Registration status badges (green/yellow)
+- ✅ Support for Let's Encrypt, self-signed, custom certs
+
+#### Git Clone/Pull Integration (Discovery)
+- ✅ Clone repositories from GitHub (HTTPS/SSH)
+- ✅ Clone into /var/www/html/ with custom name
+- ✅ Branch selection for cloning
+- ✅ Pull latest changes for git repositories
+- ✅ SSH key integration for private repos
+- ✅ "Clone Repository" button
+- ✅ "Pull" button for git-enabled apps
+
+#### Apache Controls (Discovery)
+- ✅ Apache service status indicator
+- ✅ Reload Apache (graceful)
+- ✅ Restart Apache (full restart)
+- ✅ Configuration test before operations
+- ✅ Real-time status updates
+
+#### Database Cleanup Feature
+- ✅ "Cleanup DB" button for orphaned entries
+- ✅ Detects non-existent apps, domains, databases, SSL
+- ✅ Useful after server migration
+- ✅ Detailed cleanup report
+
+#### System Setup Commands Panel
+- ✅ Collapsible panel with system commands
+- ✅ Apache control permissions (sudoers)
+- ✅ Git SSH key setup for www-data
+- ✅ Web directory permissions
+- ✅ Copy single command button
+- ✅ "Copy All" button per section
+- ✅ Terminal-style dark theme
+
+### Bug Fixes
+- ✅ Fixed hardcoded database credentials
+- ✅ Fixed mysqldump command escaping (Exit Code 2)
+- ✅ Fixed Apps controller 500 error (namespace issue)
+- ✅ Fixed backup directory creation
+
+### Files Updated
+- `app/Services/GitService.php` - Added clone/pull methods
+- `app/Services/ServerDiscoveryService.php` - Added SSL, cleanup, Apache methods
+- `app/Services/DatabaseService.php` - Fixed credentials and error handling
+- `app/Controllers/DiscoveryController.php` - Added 8 new endpoints
+- `app/Controllers/AppController.php` - Fixed namespace issue
+- `resources/views/layouts/main.php` - Added SweetAlert2
+- `resources/views/discovery/index.php` - Complete overhaul
+- `public/index.php` - Added new routes
+- 13+ view files updated for SweetAlert2
 
 ---
 
 ## 📈 Progress Metrics
 
 ### Code Statistics
-- **PHP Files:** 18
-- **SQL Files:** 2
-- **View Files:** 8
+- **PHP Files:** 40+
+- **SQL Files:** 5
+- **View Files:** 25+
 - **Config Files:** 4
-- **Script Files:** 3
-- **Total Lines:** ~4,500+
+- **Script Files:** 5
+- **Total Lines:** ~15,000+
 
 ### Database Statistics
-- **Tables:** 5 (users, roles, permissions, role_permissions, sessions)
+- **Tables:** 12+ (users, roles, permissions, apps, domains, ssl_certificates, mysql_databases, database_backups, cron_jobs, activity_logs, system_metrics, etc.)
 - **Default Roles:** 4
 - **Default Permissions:** 35+
-- **Indexes:** 10+
+- **Indexes:** 25+
 
 ### Route Statistics
 - **Public Routes:** 2
-- **Authenticated Routes:** 4
-- **Root-Only Routes:** 7
-- **Total Routes:** 13
+- **Authenticated Routes:** 50+
+- **Root-Only Routes:** 15+
+- **Total Routes:** 70+
 
 ### Security Features
 - **Password Hashing:** Bcrypt (cost 12)
@@ -327,37 +395,36 @@ Documentation: 5 files + .gitignore
 - **XSS Prevention:** All output escaped
 - **Input Validation:** All user inputs
 - **Session Security:** HTTPOnly, SameSite, timeout
+- **SweetAlert2:** Consistent UX for all confirmations
 
 ---
 
 ## 🎯 Next Steps
 
-### Immediate (Phase 1 Verification)
-1. ✅ Install on local development environment
-2. ✅ Run through testing checklist
-3. ✅ Verify all features work correctly
-4. ✅ Test RBAC enforcement
-5. ✅ Test security features
+### Completed ✅
+1. ✅ Authentication & RBAC (Phase 1)
+2. ✅ Dashboard & Server Monitoring (Phase 2)
+3. ✅ Git Integration (Phase 3)
+4. ✅ App Deployment (Phase 4)
+5. ✅ Domain Management (Phase 5)
+6. ✅ SSL Management (Phase 6)
+7. ✅ Database Management (Phase 7)
+8. ✅ WordPress Installer (Phase 8)
+9. ✅ Cron Jobs (Phase 9)
+10. ✅ Logs & Monitoring (Phase 10)
+11. ✅ Web Terminal (Phase 11)
+12. ✅ Git Submodules (Phase 12)
+13. ✅ Polish & Launch (Phase 13)
+14. ✅ Discovery Enhancements & UX (Phase 14)
 
-### Short-term (Phase 2 Preparation)
-1. Review Phase 2 requirements
-2. Design server monitoring system
-3. Plan activity logging structure
-4. Prepare dashboard stats queries
-
-### Medium-term (Phase 3-6)
-1. Git integration
-2. App deployment system
-3. Domain management
-4. SSL automation
-
-### Long-term (Phase 7-13)
-1. Database management
-2. WordPress installer
-3. Cron jobs
-4. Log viewer
-5. Web terminal
-6. Polish & launch
+### Future Enhancements (Optional)
+1. Multi-server support (v2.0)
+2. Two-factor authentication (2FA)
+3. REST API for external integrations
+4. Docker container support
+5. Automated backups scheduling
+6. Email notifications
+7. Slack/Discord webhooks
 
 ---
 
@@ -421,19 +488,20 @@ http://localhost/server-manager/public
 
 ## 🎉 Acknowledgments
 
-Phase 1 implementation completed successfully!
+All 14 phases completed successfully!
 
 **Developer:** Peter Bamuhigire
-**Technologies:** PHP, MySQL, TailwindCSS, Alpine.js
-**Time Invested:** ~2-3 hours
-**Quality:** Production-ready for Phase 1 features
+**Technologies:** PHP 8.2+, MySQL 8.0+, TailwindCSS, Alpine.js, SweetAlert2
+**Platform:** Ubuntu/Debian Linux (Apache 2.4+)
+**Quality:** Production-ready
 
 ---
 
-**Next Update:** When Phase 2 begins
+**Last Update:** January 25, 2026
 
 For detailed information, see:
 - **Installation:** INSTALLATION_GUIDE.md
-- **Implementation:** PHASE_1_SUMMARY.md
+- **Implementation:** PHASE_1_SUMMARY.md, PHASE_2_SUMMARY.md
 - **Changes:** CHANGELOG.md
 - **Project Plan:** PROJECT_BRIEF.md
+- **Architecture:** ARCHITECTURE.md

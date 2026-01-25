@@ -5,16 +5,16 @@ A web-based PHP application for managing Ubuntu VPS servers with a beautiful das
 ![PHP Version](https://img.shields.io/badge/PHP-8.2+-blue)
 ![License](https://img.shields.io/badge/License-MIT-green)
 ![Status](https://img.shields.io/badge/Status-Production%20Ready-brightgreen)
-![Phase](https://img.shields.io/badge/Phase%2013-Complete%20%E2%9C%85-brightgreen)
-![Progress](https://img.shields.io/badge/Progress-100%25%20(13%2F13%20Phases)-brightgreen)
+![Phase](https://img.shields.io/badge/Phase%2014-Complete%20%E2%9C%85-brightgreen)
+![Progress](https://img.shields.io/badge/Progress-100%25%20(14%2F14%20Phases)-brightgreen)
 
 ---
 
 ## 📊 Project Status
 
-**Current Phase:** Phase 13 ✅ COMPLETE (Final Polish)
-**Last Updated:** January 24, 2026
-**Overall Progress:** 100% (13 of 13 phases complete)
+**Current Phase:** Phase 14 ✅ COMPLETE (Discovery Enhancements & UX)
+**Last Updated:** January 25, 2026
+**Overall Progress:** 100% (14 of 14 phases complete)
 **Status:** Production Ready 🎉
 
 ### What's Working Now
@@ -37,9 +37,14 @@ A web-based PHP application for managing Ubuntu VPS servers with a beautiful das
 - ✅ **Log Viewer** - View and search system logs from Apache, PHP, MySQL, and application logs
 - ✅ **Web Terminal** - Execute shell commands from browser with command history and security controls
 - ✅ **Git Submodules** - Manage shared code repositories across multiple applications with auto-sync
+- ✅ **Server Discovery** - Discover and register existing apps, domains, databases, SSL certificates
+- ✅ **Git Clone/Pull** - Clone GitHub repos and pull updates directly from the web interface
+- ✅ **Apache Controls** - Restart/reload Apache from the web interface
+- ✅ **SweetAlert2** - Beautiful, consistent alerts and confirmations throughout the app
+- ✅ **System Setup Commands** - Copy-paste ready commands for system configuration
 
 ### ✨ Version 1.0 Complete!
-All 13 phases completed. The application is production-ready with full feature set, security hardening, and comprehensive documentation.
+All 14 phases completed. The application is production-ready with full feature set, security hardening, and comprehensive documentation.
 
 ---
 
