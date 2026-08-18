@@ -1,5 +1,9 @@
 <?php
 
+// Server Manager is a private administration application, never a public
+// website. Emit the crawler exclusion before any redirect or rendered output.
+header('X-Robots-Tag: noindex, nofollow, noarchive, nosnippet, noimageindex, notranslate', true);
+
 /**
  * Front Controller
  * Chwezi Server Manager

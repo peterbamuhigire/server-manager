@@ -1,0 +1,3 @@
+# Server Manager is an authenticated administration application, not a public website.
+User-agent: *
+Disallow: /

@@ -16,6 +16,9 @@
 
 # Security Headers
 <IfModule mod_headers.c>
+    # Server Manager is an authenticated administration application, never a
+    # public website.
+    Header always set X-Robots-Tag "noindex, nofollow, noarchive, nosnippet, noimageindex, notranslate"
     Header set X-Content-Type-Options "nosniff"
     Header set X-Frame-Options "SAMEORIGIN"
     Header set X-XSS-Protection "1; mode=block"

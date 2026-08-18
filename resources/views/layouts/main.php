@@ -8,6 +8,7 @@ $currentPath = current_url();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex, notranslate">
     <title><?= $pageTitle ?? 'Dashboard' ?> - <?= config('app.name') ?></title>
     <?= CsrfMiddleware::meta() ?>
 
